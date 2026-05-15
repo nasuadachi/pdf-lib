@@ -263,6 +263,11 @@ iPadOS 固有の検証:
   - 差し替え前に古い `iframe` を `about:blank` に逃がす。
   - 古い object URL を `URL.revokeObjectURL()` する。
   - `pagehide` 時にも表示中の object URL を cleanup する。
+- Phase 3 の一部として、iPadOS Safari で繰り返し生成・表示を試すための
+  `apps/web/test19.html` を追加した。
+  - `Run 30` と `Run 100` で、PDF 生成、`save({ dispose: true })`、iframe 表示
+    差し替えを繰り返す。
+  - `Stop` で表示中の Blob URL を cleanup する。
 
 ## 現在のステータス
 
@@ -270,4 +275,5 @@ Phase 1 の embedder 参照解放と、Phase 2 前半の明示的 `PDFDocument.d
 は実装済みです。さらに、明示オプション指定時だけ保存後に document を破棄する
 `save({ dispose: true })` と、dispose 時の font embedder 解放も追加済みです。
 Web サンプル側の Blob URL cleanup も追加済みです。次に着手するなら、iPadOS
-Safari で繰り返し生成・表示を測る手動ストレステスト導線を別コミットで追加します。
+Safari 実機で `apps/web/test19.html` と実アプリの再描画フローを比較し、効果の
+あるコミットだけを cherry-pick するのがよいです。

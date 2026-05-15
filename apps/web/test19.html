@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self' 'unsafe-inline' blob: data: resource:;
+        object-src 'self' blob: data:;
+        frame-src 'self' blob: data:;
+      "
+    />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" type="text/css" href="/apps/web/index.css" />
+    <title>Test 19</title>
+    <script type="text/javascript" src="/dist/pdf-lib.js"></script>
+    <script type="text/javascript" src="/apps/web/utils.js"></script>
+  </head>
+
+  <body>
+    <div id="button-container">
+      <button onclick="window.location.href = '/apps/web/test18.html'">
+        Prev
+      </button>
+      <button onclick="runStressTest(30)">Run 30</button>
+      <button onclick="runStressTest(100)">Run 100</button>
+      <button onclick="stopStressTest()">Stop</button>
+      <button disabled>Next</button>
+      <button id="status" disabled>Idle</button>
+    </div>
+    <div id="animation-target"></div>
+    <iframe id="iframe"></iframe>
+  </body>
+
+  <script type="text/javascript">
+    startFpsTracker('animation-target');
+
+    const { PDFDocument, rgb, StandardFonts } = PDFLib;
+
+    let shouldStopStressTest = false;
+    let stressTestRunId = 0;
+
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    const setStatus = (message) => {
+      document.getElementById('status').textContent = message;
+    };
+
+    const getMemoryStatus = () => {
+      if (!performance.memory) return '';
+
+      const usedMb = performance.memory.usedJSHeapSize / 1024 / 1024;
+      return ` / ${usedMb.toFixed(1)} MB`;
+    };
+
+    const createPdfBytes = async (iteration) => {
+      const pdfDoc = await PDFDocument.create({ updateMetadata: false });
+      const page = pdfDoc.addPage([612, 792]);
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+      page.drawText(`WebKit memory stress: ${iteration}`, {
+        x: 48,
+        y: 720,
+        size: 24,
+        font,
+        color: rgb(0.1, 0.1, 0.1),
+      });
+
+      for (let idx = 0; idx < 40; idx++) {
+        page.drawText(`Line ${idx + 1} / iteration ${iteration}`, {
+          x: 48,
+          y: 680 - idx * 14,
+          size: 10,
+          font,
+          color: rgb((idx % 10) / 12, 0.25, 0.5),
+        });
+      }
+
+      return pdfDoc.save({ dispose: true });
+    };
+
+    async function runStressTest(iterations) {
+      const runId = ++stressTestRunId;
+      shouldStopStressTest = false;
+      cleanupPdfIframe('iframe');
+
+      for (let iteration = 1; iteration <= iterations; iteration++) {
+        if (shouldStopStressTest || runId !== stressTestRunId) break;
+
+        setStatus(`Rendering ${iteration}/${iterations}${getMemoryStatus()}`);
+
+        const pdfBytes = await createPdfBytes(iteration);
+        if (shouldStopStressTest || runId !== stressTestRunId) break;
+
+        renderPdfBytesInIframe('iframe', pdfBytes);
+
+        await sleep(120);
+      }
+
+      if (runId === stressTestRunId) {
+        setStatus(
+          shouldStopStressTest
+            ? 'Stopped'
+            : `Done ${iterations}${getMemoryStatus()}`,
+        );
+      }
+    }
+
+    function stopStressTest() {
+      shouldStopStressTest = true;
+      stressTestRunId += 1;
+      cleanupPdfIframe('iframe');
+      setStatus('Stopped');
+    }
+  </script>
+</html>
