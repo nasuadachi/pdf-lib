@@ -613,6 +613,26 @@ describe(`PDFDocument`, () => {
         new PDFDocumentDisposedError(),
       );
     });
+
+    it(`disposes font embedders after saving with disposal`, async () => {
+      const customFont = fs.readFileSync('assets/fonts/ubuntu/Ubuntu-B.ttf');
+      const pdfDoc = await PDFDocument.create({ updateMetadata: false });
+      pdfDoc.registerFontkit(fontkit);
+
+      const font = await pdfDoc.embedFont(customFont);
+      const page = pdfDoc.addPage();
+      page.drawText('Unit Test', { font });
+
+      const pdfBytes = await pdfDoc.save({ dispose: true });
+
+      expect(pdfBytes.byteLength).toBeGreaterThan(0);
+      expect(() => font.widthOfTextAtSize('Unit Test', 12)).toThrow(
+        new PDFDocumentDisposedError(),
+      );
+      await expect(PDFDocument.load(pdfBytes)).resolves.toBeInstanceOf(
+        PDFDocument,
+      );
+    });
   });
 
   describe(`dispose() method`, () => {

@@ -252,11 +252,17 @@ iPadOS 固有の検証:
   - 明示オプション指定時のみ、シリアライズ成功後に `PDFDocument.dispose()` を
     呼ぶ。
   - 返却済みの `Uint8Array` / base64 string は引き続き利用できる。
+- Phase 2 の一部として、`PDFDocument.dispose()` 時に `PDFFont` が保持する
+  embedder 参照も解放するようにした。
+  - custom font の `fontkit` font object と元 font bytes を document disposal
+    後に保持し続けにくくする。
+  - 通常の `save()` 後は text measurement などの既存 API 互換性を維持するため、
+    font embedder は自動解放しない。
 
 ## 現在のステータス
 
 Phase 1 の embedder 参照解放と、Phase 2 前半の明示的 `PDFDocument.dispose()`
 は実装済みです。さらに、明示オプション指定時だけ保存後に document を破棄する
-`save({ dispose: true })` も追加済みです。次に着手するなら、Web サンプル側の
-Blob URL cleanup と、iPadOS Safari での手動ストレステスト導線を別コミットで
-追加します。
+`save({ dispose: true })` と、dispose 時の font embedder 解放も追加済みです。
+次に着手するなら、Web サンプル側の Blob URL cleanup と、iPadOS Safari での
+手動ストレステスト導線を別コミットで追加します。

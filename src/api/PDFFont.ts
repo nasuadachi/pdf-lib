@@ -1,4 +1,5 @@
 import Embeddable from 'src/api//Embeddable';
+import { PDFDocumentDisposedError } from 'src/api/errors';
 import PDFDocument from 'src/api/PDFDocument';
 import {
   CustomFontEmbedder,
@@ -39,7 +40,7 @@ export default class PDFFont implements Embeddable {
   readonly name: string;
 
   private modified = true;
-  private readonly embedder: FontEmbedder;
+  private embedder: FontEmbedder | undefined;
 
   private constructor(ref: PDFRef, doc: PDFDocument, embedder: FontEmbedder) {
     assertIs(ref, 'ref', [[PDFRef, 'PDFRef']]);
@@ -69,7 +70,7 @@ export default class PDFFont implements Embeddable {
   encodeText(text: string): PDFHexString {
     assertIs(text, 'text', ['string']);
     this.modified = true;
-    return this.embedder.encodeText(text);
+    return this.assertNotDisposed().encodeText(text);
   }
 
   /**
@@ -86,7 +87,7 @@ export default class PDFFont implements Embeddable {
   widthOfTextAtSize(text: string, size: number): number {
     assertIs(text, 'text', ['string']);
     assertIs(size, 'size', ['number']);
-    return this.embedder.widthOfTextAtSize(text, size);
+    return this.assertNotDisposed().widthOfTextAtSize(text, size);
   }
 
   /**
@@ -105,7 +106,7 @@ export default class PDFFont implements Embeddable {
   heightAtSize(size: number, options?: { descender?: boolean }): number {
     assertIs(size, 'size', ['number']);
     assertOrUndefined(options?.descender, 'options.descender', ['boolean']);
-    return this.embedder.heightOfFontAtSize(size, {
+    return this.assertNotDisposed().heightOfFontAtSize(size, {
       descender: options?.descender ?? true,
     });
   }
@@ -120,7 +121,7 @@ export default class PDFFont implements Embeddable {
    */
   sizeAtHeight(height: number): number {
     assertIs(height, 'height', ['number']);
-    return this.embedder.sizeOfFontAtHeight(height);
+    return this.assertNotDisposed().sizeOfFontAtHeight(height);
   }
 
   /**
@@ -128,10 +129,11 @@ export default class PDFFont implements Embeddable {
    * @returns The set of unicode code points supported by this font.
    */
   getCharacterSet(): number[] {
-    if (this.embedder instanceof StandardFontEmbedder) {
-      return this.embedder.encoding.supportedCodePoints;
+    const embedder = this.assertNotDisposed();
+    if (embedder instanceof StandardFontEmbedder) {
+      return embedder.encoding.supportedCodePoints;
     } else {
-      return this.embedder.font.characterSet;
+      return embedder.font.characterSet;
     }
   }
 
@@ -146,9 +148,20 @@ export default class PDFFont implements Embeddable {
    */
   async embed(): Promise<void> {
     // TODO: Cleanup orphan embedded objects if a font is embedded multiple times...
+    const embedder = this.assertNotDisposed();
     if (this.modified) {
-      await this.embedder.embedIntoContext(this.doc.context, this.ref);
+      await embedder.embedIntoContext(this.doc.context, this.ref);
       this.modified = false;
     }
+  }
+
+  dispose(): void {
+    this.embedder = undefined;
+    this.modified = false;
+  }
+
+  private assertNotDisposed(): FontEmbedder {
+    if (!this.embedder) throw new PDFDocumentDisposedError();
+    return this.embedder;
   }
 }

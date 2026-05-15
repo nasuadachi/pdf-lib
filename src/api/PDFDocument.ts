@@ -234,6 +234,9 @@ export default class PDFDocument {
     this.pageMap.clear();
     this.formCache.invalidate();
 
+    for (let idx = 0, len = this.fonts.length; idx < len; idx++) {
+      this.fonts[idx].dispose();
+    }
     this.fonts.length = 0;
     this.images.length = 0;
     this.embeddedPages.length = 0;
