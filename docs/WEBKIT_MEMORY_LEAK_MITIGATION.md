@@ -105,6 +105,10 @@ iframe.src = url;
 - `apps/web/test22.html`
   - iPadOS Safari では inline PDF iframe preview を避け、生成済み PDF の
     object URL をリンクとしてだけ提示する mitigation サンプル。
+- `apps/web/test23.html`
+  - stress test 中は object URL を作らず、最後の PDF bytes だけを保持する。
+    ユーザーが `Open Latest` を押した時だけ object URL を作る deferred preview
+    サンプル。
 - `docs/WEBKIT_MEMORY_RECORDING_SUMMARY.json`
   - iPadOS Safari で `apps/web/test19.html` を動かした Safari Web Inspector
     timeline recording から、必要な集計だけを抜き出した JSON。
@@ -440,6 +444,11 @@ JS 側の参照を減らす対策としては意味があるが、`iframe` に�
   - `blob:` URL は 30 個観測された。
   - `iframe` に PDF を流さないことで `test20` より改善したが、繰り返し
     object URL を作るだけでも Safari/WebKit 側の `page` 保持が残る可能性がある。
+- Phase 3 の一部として、`apps/web/test23.html` を追加した。
+  - 繰り返し生成中は `Blob` も object URL も作らない。
+  - 最後の `Uint8Array` だけを保持し、ユーザー操作時だけ object URL を作って
+    別タブで開く。
+  - `test22` で残った `page` 増加が object URL 作成由来かを切り分ける。
 
 ## 現在のステータス
 
