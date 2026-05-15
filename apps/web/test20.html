@@ -55,6 +55,12 @@
       return ` / ${usedMb.toFixed(1)} MB`;
     };
 
+    const setCompletedStatus = (iterations, iteration, suffix = '') => {
+      const message = `${iterations}回テスト ${iteration}回目 完了した${suffix}${getMemoryStatus()}`;
+      console.log(message);
+      setStatus(message);
+    };
+
     const createPdfBytes = async (iteration) => {
       const pdfDoc = await PDFDocument.create({ updateMetadata: false });
       const page = pdfDoc.addPage([612, 792]);
@@ -114,6 +120,7 @@
       const runId = ++stressTestRunId;
       shouldStopStressTest = false;
       await cleanupPreviewIframe();
+      let completedIteration = 0;
 
       for (let iteration = 1; iteration <= iterations; iteration++) {
         if (shouldStopStressTest || runId !== stressTestRunId) break;
@@ -124,6 +131,8 @@
           const pdfBytes = await createPdfBytes(iteration);
           if (shouldStopStressTest || runId !== stressTestRunId) break;
           await renderPdfBytesViaServer(pdfBytes);
+          completedIteration = iteration;
+          setCompletedStatus(iterations, iteration);
         } catch (error) {
           setStatus(error.message);
           break;
@@ -132,8 +141,14 @@
         await sleep(120);
       }
 
-      if (runId === stressTestRunId && !shouldStopStressTest) {
-        setStatus(`Done ${iterations}${getMemoryStatus()}`);
+      if (
+        runId === stressTestRunId &&
+        !shouldStopStressTest &&
+        completedIteration === iterations
+      ) {
+        await sleep(250);
+        await cleanupPreviewIframe();
+        setCompletedStatus(iterations, completedIteration, ' / メモリ解放済み');
       }
     }
 

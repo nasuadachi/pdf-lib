@@ -374,11 +374,17 @@ JS 側の参照を減らす対策としては意味があるが、`iframe` に�
   - `Run 30` と `Run 100` で、PDF 生成、`save({ dispose: true })`、iframe 表示
     差し替えを繰り返す。
   - `Stop` で表示中の Blob URL を cleanup する。
+  - 各 iteration 完了時に `30回テスト 12回目 完了した` の形式で status と
+    console に記録し、完走後は iframe を `about:blank` に戻して Blob URL を
+    cleanup する。
 - Phase 3 の一部として、`blob:` iframe を避ける比較対象を追加した。
   - `apps/web/preview-server.js` は POST された PDF bytes を一時保持し、HTTP PDF
     URL として返す。
   - `apps/web/test20.html` は `save({ dispose: true })` した PDF を preview server
     に POST し、`iframe` には `blob:` ではなく `/__pdf_preview/*.pdf` を設定する。
+  - 各 iteration 完了時に `30回テスト 12回目 完了した` の形式で status と
+    console に記録し、完走後は iframe を `about:blank` に戻して server 側 preview
+    entry を DELETE する。
   - `yarn apps:web:preview` で起動して、`test19` と `test20` の iPadOS Safari
     memory category を比較する。
 - iPadOS Safari の timeline recording を集計し、
