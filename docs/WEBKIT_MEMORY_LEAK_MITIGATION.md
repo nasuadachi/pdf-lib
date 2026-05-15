@@ -109,12 +109,19 @@ iframe.src = url;
   - stress test 中は object URL を作らず、最後の PDF bytes だけを保持する。
     ユーザーが `Open Latest` を押した時だけ object URL を作る deferred preview
     サンプル。
+- `apps/web/test24.html`
+  - stress test 中は object URL も server preview URL も作らず、最後の PDF bytes
+    だけを保持する。ユーザーが `Open Latest` / `Download Latest` を押した時だけ
+    preview server に POST し、通常 HTTP URL を別タブで開く。
 - `apps/web/utils.js`
   - `createDeferredPdfObjectUrlPreview()` を追加した。`setBytes()` は bytes を
     保持するだけで `Blob` / object URL を作らず、`open()` / `download()` が
     呼ばれた時だけ object URL を作る。作成した object URL は既定で 30 秒後に
     revoke する。`clearBytesAfterUse: true` を指定すると、`open()` / `download()`
     後に元の bytes 参照も解放する。
+  - `createServerBackedPdfPreview()` を追加した。`setBytes()` は bytes を保持する
+    だけで、`open()` / `download()` のユーザー操作時だけ preview server に POST
+    して通常 HTTP URL を発行する。
 - `docs/WEBKIT_MEMORY_RECORDING_SUMMARY.json`
   - iPadOS Safari で `apps/web/test19.html` を動かした Safari Web Inspector
     timeline recording から、必要な集計だけを抜き出した JSON。
@@ -473,6 +480,12 @@ JS 側の参照を減らす対策としては意味があるが、`iframe` に�
   - `page` category は 22.1 MB から 24.6 MB までの増加に留まった。
   - これにより、繰り返し処理中は `Blob` / object URL / iframe preview を作らず、
     ユーザー操作時だけ object URL を作る方式が最も有効だと判断できる。
+- Phase 3 の一部として、`apps/web/test24.html` を追加した。
+  - 繰り返し生成中は `Blob` / object URL / server URL を作らない。
+  - `Open Latest` / `Download Latest` のユーザー操作時だけ preview server に POST
+    して通常 HTTP URL を発行する。
+  - 複数 PDF をタブで並べて比較する用途では、元ページの object URL revoke に
+    依存しないため `test23` より実運用向き。
 
 ## 現在のステータス
 

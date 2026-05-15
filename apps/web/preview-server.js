@@ -7,7 +7,7 @@ const rootDir = path.resolve(__dirname, '../..');
 const host = process.env.HOST || '0.0.0.0';
 const port = Number(process.env.PORT || 8080);
 const maxBodyBytes = Number(process.env.MAX_PDF_BYTES || 32 * 1024 * 1024);
-const maxEntries = Number(process.env.MAX_PDF_PREVIEWS || 10);
+const maxEntries = Number(process.env.MAX_PDF_PREVIEWS || 50);
 const previews = new Map();
 
 const contentTypes = {

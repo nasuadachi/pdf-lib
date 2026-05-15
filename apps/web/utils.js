@@ -234,4 +234,86 @@ function createDeferredPdfObjectUrlPreview(options = {}) {
   };
 }
 
+function createServerBackedPdfPreview(options = {}) {
+  const endpoint = options.endpoint || '/__pdf_preview';
+  const mimeType = options.mimeType || 'application/pdf';
+  const target = options.target || '_blank';
+  const clearBytesAfterUse = options.clearBytesAfterUse || false;
+  let pdfBytes;
+  let latestUrl;
+
+  const clear = () => {
+    pdfBytes = undefined;
+    latestUrl = undefined;
+  };
+
+  const setBytes = (bytes) => {
+    pdfBytes = bytes;
+    latestUrl = undefined;
+  };
+
+  const upload = async () => {
+    if (!pdfBytes) return undefined;
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'content-type': mimeType },
+      body: pdfBytes,
+    });
+
+    if (!response.ok) {
+      throw new Error('Unable to create server-backed PDF preview');
+    }
+
+    const { url } = await response.json();
+    latestUrl = url;
+    if (clearBytesAfterUse) pdfBytes = undefined;
+    return url;
+  };
+
+  const open = async () => {
+    if (!pdfBytes) return undefined;
+
+    const openedWindow = window.open('about:blank', target);
+    if (openedWindow) {
+      openedWindow.opener = null;
+      openedWindow.document.title = 'Loading PDF';
+      openedWindow.document.body.textContent = 'Loading PDF...';
+    }
+
+    const url = await upload();
+    if (openedWindow) {
+      openedWindow.location.href = url;
+    } else {
+      window.location.href = url;
+    }
+    return { openedWindow, url };
+  };
+
+  const download = async (fileName = 'document.pdf') => {
+    const url = await upload();
+    if (!url) return false;
+
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.rel = 'noopener noreferrer';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    return true;
+  };
+
+  return {
+    clear,
+    download,
+    getBytes: () => pdfBytes,
+    getLatestUrl: () => latestUrl,
+    hasBytes: () => !!pdfBytes,
+    open,
+    setBytes,
+    upload,
+  };
+}
+
 window.addEventListener('pagehide', cleanupAllPdfIframes);
