@@ -3,6 +3,7 @@ import fs from 'fs';
 import {
   EncryptedPDFError,
   ParseSpeeds,
+  PDFDocumentDisposedError,
   PDFArray,
   PDFDict,
   PDFDocument,
@@ -582,6 +583,40 @@ describe(`PDFDocument`, () => {
       const pdfBytes2 = await pdfDoc.save();
       expect(pdfBytes2.byteLength).toBeGreaterThan(0);
       expect(pdfBytes2.byteLength).not.toEqual(pdfBytes1.byteLength);
+    });
+  });
+
+  describe(`dispose() method`, () => {
+    it(`releases internal document state after saving`, async () => {
+      const pdfDoc = await PDFDocument.create({ updateMetadata: false });
+      pdfDoc.addPage();
+
+      const pdfBytes = await pdfDoc.save();
+      expect(pdfBytes.byteLength).toBeGreaterThan(0);
+      expect(pdfDoc.context.enumerateIndirectObjects().length).toBeGreaterThan(
+        0,
+      );
+
+      pdfDoc.dispose();
+
+      expect(pdfDoc.context.enumerateIndirectObjects()).toEqual([]);
+      expect(pdfDoc.catalog.keys()).toEqual([]);
+      expect(() => pdfDoc.getPageCount()).toThrow(
+        new PDFDocumentDisposedError(),
+      );
+      await expect(pdfDoc.save()).rejects.toThrow(
+        new PDFDocumentDisposedError(),
+      );
+      await expect(PDFDocument.load(pdfBytes)).resolves.toBeInstanceOf(
+        PDFDocument,
+      );
+    });
+
+    it(`can be called more than once`, async () => {
+      const pdfDoc = await PDFDocument.create();
+
+      expect(() => pdfDoc.dispose()).not.toThrow();
+      expect(() => pdfDoc.dispose()).not.toThrow();
     });
   });
 

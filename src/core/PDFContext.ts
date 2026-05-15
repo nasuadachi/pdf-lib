@@ -93,6 +93,15 @@ class PDFContext {
     return this.indirectObjects.delete(ref);
   }
 
+  clear(): void {
+    this.largestObjectNumber = 0;
+    this.header = PDFHeader.forVersion(1, 7);
+    this.trailerInfo = {};
+    this.indirectObjects.clear();
+    this.pushGraphicsStateContentStreamRef = undefined;
+    this.popGraphicsStateContentStreamRef = undefined;
+  }
+
   lookupMaybe(ref: LookupKey, type: typeof PDFArray): PDFArray | undefined;
   lookupMaybe(ref: LookupKey, type: typeof PDFBool): PDFBool | undefined;
   lookupMaybe(ref: LookupKey, type: typeof PDFDict): PDFDict | undefined;

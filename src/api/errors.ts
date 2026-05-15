@@ -36,6 +36,13 @@ export class RemovePageFromEmptyDocumentError extends Error {
   }
 }
 
+export class PDFDocumentDisposedError extends Error {
+  constructor() {
+    const msg = 'PDFDocument has been disposed and can no longer be used';
+    super(msg);
+  }
+}
+
 export class NoSuchFieldError extends Error {
   constructor(name: string) {
     const msg = `PDFDocument has no form field with the name "${name}"`;

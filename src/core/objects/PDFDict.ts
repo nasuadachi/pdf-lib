@@ -155,6 +155,10 @@ class PDFDict extends PDFObject {
     return this.dict.delete(key);
   }
 
+  clear(): void {
+    this.dict.clear();
+  }
+
   asMap(): Map<PDFName, PDFObject> {
     return new Map(this.dict);
   }

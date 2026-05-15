@@ -241,9 +241,15 @@ iPadOS 固有の検証:
   `PDFJavaScript` が embed 成功後に embedder 参照を解放するようにした。
 - `PDFDocument` の focused test に、複数回 `flush()` / `save()` しても
   JavaScript、添付ファイル、埋め込みページの利用が壊れないことを追加した。
+- Phase 2 の一部として、ワンショット生成後に呼べる `PDFDocument.dispose()`
+  を追加した。
+  - dispose 後は public API が `PDFDocumentDisposedError` を投げる。
+  - page/form cache、page map、埋め込み素材配列、catalog、context の保持を
+    clear する。
+  - 通常の `save()` は既存互換性のため、まだ自動 dispose しない。
 
 ## 現在のステータス
 
-Phase 1 の embedder 参照解放は実装済みです。次に着手するなら、Phase 2 の
-`PDFDocument.dispose()` を小さく追加し、通常の `save()` と挙動を分離して
-検証できるようにするのがよいです。
+Phase 1 の embedder 参照解放と、Phase 2 前半の明示的 `PDFDocument.dispose()`
+は実装済みです。次に着手するなら、`save({ dispose: true })` を別コミットで
+追加し、明示オプション指定時だけ保存後に document を破棄できるようにします。
