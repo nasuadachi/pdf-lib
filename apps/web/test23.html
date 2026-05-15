@@ -54,7 +54,9 @@
 
     let shouldStopStressTest = false;
     let stressTestRunId = 0;
-    const latestPdfPreview = createDeferredPdfObjectUrlPreview();
+    const latestPdfPreview = createDeferredPdfObjectUrlPreview({
+      clearBytesAfterUse: true,
+    });
 
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -158,7 +160,8 @@
       }
 
       latestPdfPreview.open();
-      setStatus(`Opened latest PDF${getMemoryStatus()}`);
+      setProgress(0, 0, undefined);
+      setStatus(`Opened latest PDF / bytes released${getMemoryStatus()}`);
     }
 
     function stopStressTest() {

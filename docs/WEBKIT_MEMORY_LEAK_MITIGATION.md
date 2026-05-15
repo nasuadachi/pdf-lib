@@ -112,7 +112,9 @@ iframe.src = url;
 - `apps/web/utils.js`
   - `createDeferredPdfObjectUrlPreview()` を追加した。`setBytes()` は bytes を
     保持するだけで `Blob` / object URL を作らず、`open()` / `download()` が
-    呼ばれた時だけ object URL を作る。
+    呼ばれた時だけ object URL を作る。作成した object URL は既定で 30 秒後に
+    revoke する。`clearBytesAfterUse: true` を指定すると、`open()` / `download()`
+    後に元の bytes 参照も解放する。
 - `docs/WEBKIT_MEMORY_RECORDING_SUMMARY.json`
   - iPadOS Safari で `apps/web/test19.html` を動かした Safari Web Inspector
     timeline recording から、必要な集計だけを抜き出した JSON。
@@ -460,7 +462,10 @@ JS 側の参照を減らす対策としては意味があるが、`iframe` に�
   `createDeferredPdfObjectUrlPreview()` helper に切り出した。
   - 利用側は `setBytes(pdfBytes)` で最後の PDF bytes だけ保持する。
   - `open()` / `download()` をユーザー操作から呼んだ時だけ object URL を作る。
-  - 新しい bytes を設定する時と `pagehide` 時に、既存 object URL を revoke する。
+  - 新しい bytes を設定する時、`pagehide` 時、または `open()` / `download()` から
+    既定 30 秒後に、既存 object URL を revoke する。
+  - `test23.html` では `clearBytesAfterUse: true` を使い、ユーザー操作後に
+    元の PDF bytes 参照も解放する。
 - `test23.html` の iPadOS Safari timeline recording を集計し、
   `docs/WEBKIT_MEMORY_RECORDING_TEST23_SUMMARY.json` として保存した。
   - `blob:` URL と server preview PDF URL はどちらも 0 個だった。

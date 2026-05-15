@@ -145,10 +145,21 @@ function createDeferredPdfObjectUrlPreview(options = {}) {
   const mimeType = options.mimeType || 'application/pdf';
   const target = options.target || '_blank';
   const features = options.features || 'noopener,noreferrer';
+  const clearBytesAfterUse = options.clearBytesAfterUse || false;
+  const revokeDelayMs =
+    options.revokeDelayMs === undefined ? 30_000 : options.revokeDelayMs;
   let pdfBytes;
   let objectUrl;
+  let revokeTimer;
+
+  const clearRevokeTimer = () => {
+    if (!revokeTimer) return;
+    clearTimeout(revokeTimer);
+    revokeTimer = undefined;
+  };
 
   const revokeObjectUrl = () => {
+    clearRevokeTimer();
     if (!objectUrl) return;
     URL.revokeObjectURL(objectUrl);
     objectUrl = undefined;
@@ -172,10 +183,23 @@ function createDeferredPdfObjectUrlPreview(options = {}) {
     return objectUrl;
   };
 
+  const scheduleObjectUrlRevoke = () => {
+    clearRevokeTimer();
+    if (revokeDelayMs === false) return;
+    revokeTimer = setTimeout(revokeObjectUrl, revokeDelayMs);
+  };
+
+  const releaseBytesAfterUse = () => {
+    if (clearBytesAfterUse) pdfBytes = undefined;
+  };
+
   const open = () => {
     const url = getObjectUrl();
     if (!url) return undefined;
-    return window.open(url, target, features);
+    const openedWindow = window.open(url, target, features);
+    scheduleObjectUrlRevoke();
+    releaseBytesAfterUse();
+    return openedWindow;
   };
 
   const download = (fileName = 'document.pdf') => {
@@ -189,6 +213,8 @@ function createDeferredPdfObjectUrlPreview(options = {}) {
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
+    scheduleObjectUrlRevoke();
+    releaseBytesAfterUse();
     return true;
   };
 
@@ -203,6 +229,7 @@ function createDeferredPdfObjectUrlPreview(options = {}) {
     hasObjectUrl: () => !!objectUrl,
     open,
     revokeObjectUrl,
+    scheduleObjectUrlRevoke,
     setBytes,
   };
 }
