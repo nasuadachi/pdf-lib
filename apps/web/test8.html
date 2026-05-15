@@ -40,11 +40,8 @@
         .then((res) => res.arrayBuffer())
         .then((res) => new Uint8Array(res));
 
-    const renderInIframe = (pdfBytes) => {
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const blobUrl = URL.createObjectURL(blob);
-      document.getElementById('iframe').src = blobUrl;
-    };
+    const renderInIframe = (pdfBytes) =>
+      renderPdfBytesInIframe('iframe', pdfBytes);
 
     async function test() {
       const { PDFDocument, rgb, StandardFonts } = PDFLib;

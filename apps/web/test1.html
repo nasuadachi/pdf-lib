@@ -43,11 +43,8 @@
     const fetchStringAsset = (asset) =>
       fetch(`/assets/${asset}`).then((res) => res.text());
 
-    const renderInIframe = (pdfBytes) => {
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const blobUrl = URL.createObjectURL(blob);
-      document.getElementById('iframe').src = blobUrl;
-    };
+    const renderInIframe = (pdfBytes) =>
+      renderPdfBytesInIframe('iframe', pdfBytes);
 
     const ipsumLines = [
       'Eligendi est pariatur quidem in non excepturi et.',

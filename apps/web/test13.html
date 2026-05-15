@@ -38,11 +38,8 @@
     const fetchBinaryAsset = (asset) =>
       fetch(`/assets/${asset}`).then((res) => res.arrayBuffer());
 
-    const renderInIframe = (pdfBytes) => {
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const blobUrl = URL.createObjectURL(blob);
-      document.getElementById('iframe').src = blobUrl;
-    };
+    const renderInIframe = (pdfBytes) =>
+      renderPdfBytesInIframe('iframe', pdfBytes);
 
     // prettier-ignore
     const pngSuite = [

@@ -258,11 +258,16 @@ iPadOS 固有の検証:
     後に保持し続けにくくする。
   - 通常の `save()` 後は text measurement などの既存 API 互換性を維持するため、
     font embedder は自動解放しない。
+- Phase 3 の一部として、`apps/web` の Blob URL + `iframe` 表示サンプルを
+  共通 helper に寄せた。
+  - 差し替え前に古い `iframe` を `about:blank` に逃がす。
+  - 古い object URL を `URL.revokeObjectURL()` する。
+  - `pagehide` 時にも表示中の object URL を cleanup する。
 
 ## 現在のステータス
 
 Phase 1 の embedder 参照解放と、Phase 2 前半の明示的 `PDFDocument.dispose()`
 は実装済みです。さらに、明示オプション指定時だけ保存後に document を破棄する
 `save({ dispose: true })` と、dispose 時の font embedder 解放も追加済みです。
-次に着手するなら、Web サンプル側の Blob URL cleanup と、iPadOS Safari での
-手動ストレステスト導線を別コミットで追加します。
+Web サンプル側の Blob URL cleanup も追加済みです。次に着手するなら、iPadOS
+Safari で繰り返し生成・表示を測る手動ストレステスト導線を別コミットで追加します。
