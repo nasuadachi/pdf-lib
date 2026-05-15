@@ -19,11 +19,13 @@ export const padStart = (value: string, length: number, padChar: string) => {
   return padding + value;
 };
 
-export const copyStringIntoBuffer = (
-  str: string,
-  buffer: Uint8Array,
-  offset: number,
-): number => {
+export const stringAsByteArray = (str: string): Uint8Array => {
+  const buffer = new Uint8Array(str.length);
+  copyStringIntoBuffer(str, buffer, 0);
+  return buffer;
+};
+
+export const copyStringIntoBuffer = (str: string, buffer: Uint8Array, offset: number): number => {
   const length = str.length;
   for (let idx = 0; idx < length; idx++) {
     buffer[offset++] = str.charCodeAt(idx);
@@ -34,8 +36,7 @@ export const copyStringIntoBuffer = (
 export const addRandomSuffix = (prefix: string, suffixLength = 4) =>
   `${prefix}-${Math.floor(Math.random() * 10 ** suffixLength)}`;
 
-export const escapeRegExp = (str: string) =>
-  str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+export const escapeRegExp = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export const cleanText = (text: string) =>
   text.replace(/\t|\u0085|\u2028|\u2029/g, '    ').replace(/[\b\v]/g, '');
@@ -48,8 +49,7 @@ export const isNewlineChar = (text: string) => /^[\n\f\r\u000B]$/.test(text);
 
 export const lineSplit = (text: string) => text.split(/[\n\f\r\u000B]/);
 
-export const mergeLines = (text: string) =>
-  text.replace(/[\n\f\r\u000B]/g, ' ');
+export const mergeLines = (text: string) => text.replace(/[\n\f\r\u000B]/g, ' ');
 
 // JavaScript's String.charAt() method doesn work on strings containing UTF-16
 // characters (with high and low surrogate pairs), such as 💩 (poo emoji). This
@@ -160,19 +160,28 @@ export const parseDate = (dateStr: string): Date | undefined => {
   ] = match;
 
   // http://www.ecma-international.org/ecma-262/5.1/#sec-15.9.1.15
-  const tzOffset =
-    offsetSign === 'Z' ? 'Z' : `${offsetSign}${offsetHours}:${offsetMins}`;
-  const date = new Date(
-    `${year}-${month}-${day}T${hours}:${mins}:${secs}${tzOffset}`,
-  );
+  const tzOffset = offsetSign === 'Z' ? 'Z' : `${offsetSign}${offsetHours}:${offsetMins}`;
+  const date = new Date(`${year}-${month}-${day}T${hours}:${mins}:${secs}${tzOffset}`);
 
   return date;
 };
 
 export const findLastMatch = (value: string, regex: RegExp) => {
+  const MAX_STRING_LENGTH = 10000;
+  if (value.length > MAX_STRING_LENGTH) {
+    return { match: undefined, pos: 0 };
+  }
+
   let position = 0;
   let lastMatch: RegExpMatchArray | undefined;
+  let iterations = 0;
+  const MAX_ITERATIONS = 1000;
+
   while (position < value.length) {
+    if (++iterations > MAX_ITERATIONS) {
+      return { match: lastMatch, pos: position };
+    }
+
     const match = value.substring(position).match(regex);
     if (!match) return { match: lastMatch, pos: position };
     lastMatch = match;

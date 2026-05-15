@@ -1,11 +1,11 @@
-import PDFArray from 'src/core/objects/PDFArray';
-import PDFDict from 'src/core/objects/PDFDict';
-import PDFName from 'src/core/objects/PDFName';
-import PDFObject from 'src/core/objects/PDFObject';
-import PDFRef from 'src/core/objects/PDFRef';
-import PDFStream from 'src/core/objects/PDFStream';
-import PDFContext from 'src/core/PDFContext';
-import PDFPageLeaf from 'src/core/structures/PDFPageLeaf';
+import PDFArray from './objects/PDFArray';
+import PDFDict from './objects/PDFDict';
+import PDFName from './objects/PDFName';
+import PDFObject from './objects/PDFObject';
+import PDFRef from './objects/PDFRef';
+import PDFStream from './objects/PDFStream';
+import PDFContext from './PDFContext';
+import PDFPageLeaf from './structures/PDFPageLeaf';
 
 /**
  * PDFObjectCopier copies PDFObjects from a src context to a dest context.
@@ -29,8 +29,7 @@ import PDFPageLeaf from 'src/core/structures/PDFPageLeaf';
  * supported, but is equivalent to cloning it.
  */
 class PDFObjectCopier {
-  static for = (src: PDFContext, dest: PDFContext) =>
-    new PDFObjectCopier(src, dest);
+  static for = (src: PDFContext, dest: PDFContext) => new PDFObjectCopier(src, dest);
 
   private readonly src: PDFContext;
   private readonly dest: PDFContext;

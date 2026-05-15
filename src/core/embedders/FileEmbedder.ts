@@ -1,7 +1,7 @@
-import PDFString from 'src/core/objects/PDFString';
-import PDFHexString from 'src/core/objects/PDFHexString';
-import PDFContext from 'src/core/PDFContext';
-import PDFRef from 'src/core/objects/PDFRef';
+import PDFString from '../objects/PDFString';
+import PDFHexString from '../objects/PDFHexString';
+import PDFContext from '../PDFContext';
+import PDFRef from '../objects/PDFRef';
 
 /**
  * From the PDF-A3 specification, section **3.1. Requirements - General**.
@@ -28,11 +28,7 @@ export interface EmbeddedFileOptions {
 }
 
 class FileEmbedder {
-  static for(
-    bytes: Uint8Array,
-    fileName: string,
-    options: EmbeddedFileOptions = {},
-  ) {
+  static for(bytes: Uint8Array, fileName: string, options: EmbeddedFileOptions = {}) {
     return new FileEmbedder(bytes, fileName, options);
   }
 
@@ -40,36 +36,22 @@ class FileEmbedder {
   readonly fileName: string;
   readonly options: EmbeddedFileOptions;
 
-  private constructor(
-    fileData: Uint8Array,
-    fileName: string,
-    options: EmbeddedFileOptions = {},
-  ) {
+  private constructor(fileData: Uint8Array, fileName: string, options: EmbeddedFileOptions = {}) {
     this.fileData = fileData;
     this.fileName = fileName;
     this.options = options;
   }
 
   async embedIntoContext(context: PDFContext, ref?: PDFRef): Promise<PDFRef> {
-    const {
-      mimeType,
-      description,
-      creationDate,
-      modificationDate,
-      afRelationship,
-    } = this.options;
+    const { mimeType, description, creationDate, modificationDate, afRelationship } = this.options;
 
     const embeddedFileStream = context.flateStream(this.fileData, {
       Type: 'EmbeddedFile',
       Subtype: mimeType ?? undefined,
       Params: {
         Size: this.fileData.length,
-        CreationDate: creationDate
-          ? PDFString.fromDate(creationDate)
-          : undefined,
-        ModDate: modificationDate
-          ? PDFString.fromDate(modificationDate)
-          : undefined,
+        CreationDate: creationDate ? PDFString.fromDate(creationDate) : undefined,
+        ModDate: modificationDate ? PDFString.fromDate(modificationDate) : undefined,
       },
     });
     const embeddedFileStreamRef = context.register(embeddedFileStream);

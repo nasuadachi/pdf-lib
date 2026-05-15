@@ -1,25 +1,18 @@
-import PDFDocument from 'src/api/PDFDocument';
-import PDFPage from 'src/api/PDFPage';
-import PDFFont from 'src/api/PDFFont';
-import PDFImage from 'src/api/PDFImage';
-import PDFField, {
-  FieldAppearanceOptions,
-  assertFieldAppearanceOptions,
-} from 'src/api/form/PDFField';
+import PDFDocument from '../PDFDocument';
+import PDFPage from '../PDFPage';
+import PDFFont from '../PDFFont';
+import PDFImage from '../PDFImage';
+import PDFField, { FieldAppearanceOptions, assertFieldAppearanceOptions } from './PDFField';
 import {
   AppearanceProviderFor,
   normalizeAppearance,
   defaultTextFieldAppearanceProvider,
-} from 'src/api/form/appearances';
-import { rgb } from 'src/api/colors';
-import { degrees } from 'src/api/rotations';
-import {
-  RichTextFieldReadError,
-  ExceededMaxLengthError,
-  InvalidMaxLengthError,
-} from 'src/api/errors';
-import { ImageAlignment } from 'src/api/image/alignment';
-import { TextAlignment } from 'src/api/text/alignment';
+} from './appearances';
+import { rgb } from '../colors';
+import { degrees } from '../rotations';
+import { RichTextFieldReadError, ExceededMaxLengthError, InvalidMaxLengthError } from '../errors';
+import { ImageAlignment } from '../image/alignment';
+import { TextAlignment } from '../text/alignment';
 
 import {
   PDFHexString,
@@ -28,14 +21,14 @@ import {
   PDFAcroText,
   AcroTextFlags,
   PDFWidgetAnnotation,
-} from 'src/core';
+} from '../../core';
 import {
   assertIs,
   assertIsOneOf,
   assertOrUndefined,
   assertPositive,
   assertRangeOrUndefined,
-} from 'src/utils';
+} from '../../utils';
 
 /**
  * Represents a text field of a [[PDFForm]].
@@ -305,11 +298,7 @@ export default class PDFTextField extends PDFField {
     const widgets = this.acroField.getWidgets();
     for (let idx = 0, len = widgets.length; idx < len; idx++) {
       const widget = widgets[idx];
-      const streamRef = this.createImageAppearanceStream(
-        widget,
-        image,
-        alignment,
-      );
+      const streamRef = this.createImageAppearanceStream(widget, image, alignment);
       this.updateWidgetAppearances(widget, { normal: streamRef });
     }
 
@@ -760,8 +749,7 @@ export default class PDFTextField extends PDFField {
     const widgets = this.acroField.getWidgets();
     for (let idx = 0, len = widgets.length; idx < len; idx++) {
       const widget = widgets[idx];
-      const hasAppearances =
-        widget.getAppearances()?.normal instanceof PDFStream;
+      const hasAppearances = widget.getAppearances()?.normal instanceof PDFStream;
       if (!hasAppearances) return true;
     }
 
@@ -799,10 +787,7 @@ export default class PDFTextField extends PDFField {
    * @param provider Optionally, the appearance provider to be used for
    *                 generating the contents of the appearance streams.
    */
-  updateAppearances(
-    font: PDFFont,
-    provider?: AppearanceProviderFor<PDFTextField>,
-  ) {
+  updateAppearances(font: PDFFont, provider?: AppearanceProviderFor<PDFTextField>) {
     assertIs(font, 'font', [[PDFFont, 'PDFFont']]);
     assertOrUndefined(provider, 'provider', [Function]);
 

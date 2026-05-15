@@ -1,30 +1,23 @@
-import PDFName from 'src/core/objects/PDFName';
-import PDFNumber from 'src/core/objects/PDFNumber';
-import PDFObject from 'src/core/objects/PDFObject';
-import PDFRef from 'src/core/objects/PDFRef';
-import PDFContext from 'src/core/PDFContext';
-import PDFFlateStream from 'src/core/structures/PDFFlateStream';
-import CharCodes from 'src/core/syntax/CharCodes';
-import { copyStringIntoBuffer, last } from 'src/utils';
+import PDFName from '../objects/PDFName';
+import PDFNumber from '../objects/PDFNumber';
+import PDFObject from '../objects/PDFObject';
+import PDFRef from '../objects/PDFRef';
+import PDFContext from '../PDFContext';
+import PDFFlateStream from './PDFFlateStream';
+import CharCodes from '../syntax/CharCodes';
+import { copyStringIntoBuffer, last } from '../../utils';
 
 export type IndirectObject = [PDFRef, PDFObject];
 
 class PDFObjectStream extends PDFFlateStream {
-  static withContextAndObjects = (
-    context: PDFContext,
-    objects: IndirectObject[],
-    encode = true,
-  ) => new PDFObjectStream(context, objects, encode);
+  static withContextAndObjects = (context: PDFContext, objects: IndirectObject[], encode = true) =>
+    new PDFObjectStream(context, objects, encode);
 
   private readonly objects: IndirectObject[];
   private readonly offsets: [number, number][];
   private readonly offsetsString: string;
 
-  private constructor(
-    context: PDFContext,
-    objects: IndirectObject[],
-    encode = true,
-  ) {
+  private constructor(context: PDFContext, objects: IndirectObject[], encode = true) {
     super(context.obj({}), encode);
 
     this.objects = objects;
@@ -70,10 +63,7 @@ class PDFObjectStream extends PDFFlateStream {
 
   getUnencodedContentsSize(): number {
     return (
-      this.offsetsString.length +
-      last(this.offsets)[1] +
-      last(this.objects)[1].sizeInBytes() +
-      1
+      this.offsetsString.length + last(this.offsets)[1] + last(this.objects)[1].sizeInBytes() + 1
     );
   }
 

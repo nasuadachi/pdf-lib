@@ -1,14 +1,9 @@
-import {
-  Encodings,
-  Font,
-  FontNames,
-  EncodingType,
-} from '@pdf-lib/standard-fonts';
+import { Encodings, Font, FontNames, EncodingType } from '@pdf-lib/standard-fonts';
 
-import PDFHexString from 'src/core/objects/PDFHexString';
-import PDFRef from 'src/core/objects/PDFRef';
-import PDFContext from 'src/core/PDFContext';
-import { toCodePoint, toHexString } from 'src/utils';
+import PDFHexString from '../objects/PDFHexString';
+import PDFRef from '../objects/PDFRef';
+import PDFContext from '../PDFContext';
+import { toCodePoint, toHexString } from '../../utils';
 
 export interface Glyph {
   code: number;
@@ -70,10 +65,7 @@ class StandardFontEmbedder {
     return totalWidth * scale;
   }
 
-  heightOfFontAtSize(
-    size: number,
-    options: { descender?: boolean } = {},
-  ): number {
+  heightOfFontAtSize(size: number, options: { descender?: boolean } = {}): number {
     const { descender = true } = options;
 
     const { Ascender, Descender, FontBBox } = this.font;
@@ -99,8 +91,7 @@ class StandardFontEmbedder {
       Subtype: 'Type1',
       BaseFont: this.customName || this.fontName,
 
-      Encoding:
-        this.encoding === Encodings.WinAnsi ? 'WinAnsiEncoding' : undefined,
+      Encoding: this.encoding === Encodings.WinAnsi ? 'WinAnsiEncoding' : undefined,
     });
 
     if (ref) {

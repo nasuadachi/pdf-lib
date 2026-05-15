@@ -1,6 +1,6 @@
 // tslint:disable: max-classes-per-file
-import PDFObject from 'src/core/objects/PDFObject';
-import { arrayAsString } from 'src/utils';
+import PDFObject from './objects/PDFObject';
+import { arrayAsString } from '../utils';
 
 export class MethodNotImplementedError extends Error {
   constructor(className: string, methodName: string) {
@@ -20,9 +20,7 @@ export class UnexpectedObjectTypeError extends Error {
   constructor(expected: any | any[], actual: any) {
     const name = (t: any) => t?.name ?? t?.constructor?.name;
 
-    const expectedTypes = Array.isArray(expected)
-      ? expected.map(name)
-      : [name(expected)];
+    const expectedTypes = Array.isArray(expected) ? expected.map(name) : [name(expected)];
 
     const msg =
       `Expected instance of ${expectedTypes.join(' or ')}, ` +
@@ -196,6 +194,13 @@ export class UnbalancedParenthesisError extends PDFParsingError {
   constructor(pos: Position) {
     const msg = `Failed to parse PDF literal string due to unbalanced parenthesis`;
     super(pos, msg);
+  }
+}
+
+export class DecompressionBombError extends Error {
+  constructor(requested: number, maxSize: number) {
+    const msg = `Decompression bomb detected: requested buffer size ${requested} exceeds maximum allowed size ${maxSize}`;
+    super(msg);
   }
 }
 

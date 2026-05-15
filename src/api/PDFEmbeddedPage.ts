@@ -1,7 +1,7 @@
-import Embeddable from 'src/api/Embeddable';
-import PDFDocument from 'src/api/PDFDocument';
-import { PDFPageEmbedder, PDFRef } from 'src/core';
-import { assertIs } from 'src/utils';
+import Embeddable from './Embeddable';
+import PDFDocument from './PDFDocument';
+import { PDFPageEmbedder, PDFRef } from '../core';
+import { assertIs } from '../utils';
 
 /**
  * Represents a PDF page that has been embedded in a [[PDFDocument]].
@@ -36,11 +36,7 @@ export default class PDFEmbeddedPage implements Embeddable {
 
   private embedder: PDFPageEmbedder | undefined;
 
-  private constructor(
-    ref: PDFRef,
-    doc: PDFDocument,
-    embedder: PDFPageEmbedder,
-  ) {
+  private constructor(ref: PDFRef, doc: PDFDocument, embedder: PDFPageEmbedder) {
     assertIs(ref, 'ref', [[PDFRef, 'PDFRef']]);
     assertIs(doc, 'doc', [[PDFDocument, 'PDFDocument']]);
     assertIs(embedder, 'embedder', [[PDFPageEmbedder, 'PDFPageEmbedder']]);

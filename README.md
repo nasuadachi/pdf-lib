@@ -71,6 +71,7 @@
 - [Deno Usage](#deno-usage)
 - [Complete Examples](#complete-examples)
 - [Installation](#installation)
+- [Development](#development)
 - [Documentation](#documentation)
 - [Fonts and Unicode](#fonts-and-unicode)
 - [Creating and Filling Forms](#creating-and-filling-forms)
@@ -1158,6 +1159,19 @@ import { PDFDocument, rgb } from 'pdf-lib';
 var PDFDocument = PDFLib.PDFDocument;
 var rgb = PDFLib.rgb;
 ```
+
+## Development
+
+`pdf-lib` is built and tested with Yarn 1. The current build scripts run on Node.js 22 and use the standard TypeScript compiler for CommonJS and ES module output.
+
+```bash
+yarn install
+yarn typecheck
+yarn test
+yarn build
+```
+
+`yarn build` writes distributable artifacts to `cjs/`, `es/`, `dist/`, and `ts3.4/`. See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full local development workflow.
 
 ## Fontkit Installation
 

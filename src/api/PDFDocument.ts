@@ -1,24 +1,25 @@
-import Embeddable from 'src/api/Embeddable';
+import Embeddable from './Embeddable';
 import {
   EncryptedPDFError,
   FontkitNotRegisteredError,
   ForeignPageError,
   PDFDocumentDisposedError,
   RemovePageFromEmptyDocumentError,
-} from 'src/api/errors';
-import PDFEmbeddedPage from 'src/api/PDFEmbeddedPage';
-import PDFFont from 'src/api/PDFFont';
-import PDFImage from 'src/api/PDFImage';
-import PDFPage from 'src/api/PDFPage';
-import PDFForm from 'src/api/form/PDFForm';
-import { PageSizes } from 'src/api/sizes';
-import { StandardFonts } from 'src/api/StandardFonts';
+} from './errors';
+import PDFEmbeddedPage from './PDFEmbeddedPage';
+import PDFFont from './PDFFont';
+import PDFImage from './PDFImage';
+import PDFPage from './PDFPage';
+import PDFForm from './form/PDFForm';
+import { PageSizes } from './sizes';
+import { StandardFonts } from './StandardFonts';
 import {
   CustomFontEmbedder,
   CustomFontSubsetEmbedder,
   JpegEmbedder,
   PageBoundingBox,
   PageEmbeddingMismatchedContextError,
+  PDFArray,
   PDFCatalog,
   PDFContext,
   PDFDict,
@@ -35,7 +36,7 @@ import {
   PngEmbedder,
   StandardFontEmbedder,
   UnexpectedObjectTypeError,
-} from 'src/core';
+} from '../core';
 import {
   ParseSpeeds,
   AttachmentOptions,
@@ -45,11 +46,11 @@ import {
   CreateOptions,
   EmbedFontOptions,
   SetTitleOptions,
-} from 'src/api/PDFDocumentOptions';
-import PDFObject from 'src/core/objects/PDFObject';
-import PDFRef from 'src/core/objects/PDFRef';
-import { Fontkit } from 'src/types/fontkit';
-import { TransformationMatrix } from 'src/types/matrix';
+} from './PDFDocumentOptions';
+import PDFObject from '../core/objects/PDFObject';
+import PDFRef from '../core/objects/PDFRef';
+import { Fontkit } from '../types/fontkit';
+import { TransformationMatrix } from '../types/matrix';
 import {
   assertIs,
   assertIsOneOfOrUndefined,
@@ -62,11 +63,12 @@ import {
   pluckIndices,
   range,
   toUint8Array,
-} from 'src/utils';
-import FileEmbedder, { AFRelationship } from 'src/core/embedders/FileEmbedder';
-import PDFEmbeddedFile from 'src/api/PDFEmbeddedFile';
-import PDFJavaScript from 'src/api/PDFJavaScript';
-import JavaScriptEmbedder from 'src/core/embedders/JavaScriptEmbedder';
+} from '../utils';
+import FileEmbedder, { AFRelationship } from '../core/embedders/FileEmbedder';
+import PDFEmbeddedFile from './PDFEmbeddedFile';
+import PDFJavaScript from './PDFJavaScript';
+import JavaScriptEmbedder from '../core/embedders/JavaScriptEmbedder';
+import { CipherTransformFactory } from '../core/crypto';
 
 /**
  * Represents a PDF document.
@@ -124,22 +126,21 @@ export default class PDFDocument {
    * @param options The options to be used when loading the document.
    * @returns Resolves with a document loaded from the input.
    */
-  static async load(
-    pdf: string | Uint8Array | ArrayBuffer,
-    options: LoadOptions = {},
-  ) {
+  static async load(pdf: string | Uint8Array | ArrayBuffer, options: LoadOptions = {}) {
     const {
       ignoreEncryption = false,
       parseSpeed = ParseSpeeds.Slow,
       throwOnInvalidObject = false,
       updateMetadata = true,
       capNumbers = false,
+      password,
     } = options;
 
     assertIs(pdf, 'pdf', ['string', Uint8Array, ArrayBuffer]);
     assertIs(ignoreEncryption, 'ignoreEncryption', ['boolean']);
     assertIs(parseSpeed, 'parseSpeed', ['number']);
     assertIs(throwOnInvalidObject, 'throwOnInvalidObject', ['boolean']);
+    assertIs(password, 'password', ['string', 'undefined']);
 
     const bytes = toUint8Array(pdf);
     const context = await PDFParser.forBytesWithOptions(
@@ -148,7 +149,25 @@ export default class PDFDocument {
       throwOnInvalidObject,
       capNumbers,
     ).parseDocument();
-    return new PDFDocument(context, ignoreEncryption, updateMetadata);
+    if (!!context.lookup(context.trailerInfo.Encrypt) && password !== undefined) {
+      // Decrypt
+      const fileIds = context.lookup(context.trailerInfo.ID, PDFArray);
+      const encryptDict = context.lookup(context.trailerInfo.Encrypt, PDFDict);
+      const decryptedContext = await PDFParser.forBytesWithOptions(
+        bytes,
+        parseSpeed,
+        throwOnInvalidObject,
+        capNumbers,
+        new CipherTransformFactory(
+          encryptDict,
+          (fileIds.get(0) as PDFHexString).asBytes(),
+          password,
+        ),
+      ).parseDocument();
+      return new PDFDocument(decryptedContext, true, updateMetadata);
+    } else {
+      return new PDFDocument(context, ignoreEncryption, updateMetadata);
+    }
   }
 
   /**
@@ -191,16 +210,17 @@ export default class PDFDocument {
   private readonly embeddedFiles: PDFEmbeddedFile[];
   private readonly javaScripts: PDFJavaScript[];
 
-  private constructor(
-    context: PDFContext,
-    ignoreEncryption: boolean,
-    updateMetadata: boolean,
-  ) {
+  private constructor(context: PDFContext, ignoreEncryption: boolean, updateMetadata: boolean) {
     assertIs(context, 'context', [[PDFContext, 'PDFContext']]);
     assertIs(ignoreEncryption, 'ignoreEncryption', ['boolean']);
 
     this.context = context;
     this.catalog = context.lookup(context.trailerInfo.Root) as PDFCatalog;
+
+    if (!!context.lookup(context.trailerInfo.Encrypt) && context.isDecrypted) {
+      // context.delete(context.trailerInfo.Encrypt);
+      delete context.trailerInfo.Encrypt;
+    }
     this.isEncrypted = !!context.lookup(context.trailerInfo.Encrypt);
 
     this.pageCache = Cache.populatedBy(this.computePages);
@@ -289,9 +309,7 @@ export default class PDFDocument {
     this.assertNotDisposed();
     const form = this.formCache.access();
     if (form.hasXFA()) {
-      console.warn(
-        'Removing XFA form data as pdf-lib does not support reading or writing XFA',
-      );
+      console.warn('Removing XFA form data as pdf-lib does not support reading or writing XFA');
       form.deleteXFA();
     }
     return form;
@@ -946,14 +964,8 @@ export default class PDFDocument {
     assertOrUndefined(options.mimeType, 'mimeType', ['string']);
     assertOrUndefined(options.description, 'description', ['string']);
     assertOrUndefined(options.creationDate, 'options.creationDate', [Date]);
-    assertOrUndefined(options.modificationDate, 'options.modificationDate', [
-      Date,
-    ]);
-    assertIsOneOfOrUndefined(
-      options.afRelationship,
-      'options.afRelationship',
-      AFRelationship,
-    );
+    assertOrUndefined(options.modificationDate, 'options.modificationDate', [Date]);
+    assertIsOneOfOrUndefined(options.afRelationship, 'options.afRelationship', AFRelationship);
 
     const bytes = toUint8Array(attachment);
     const embedder = FileEmbedder.for(bytes, name, options);
@@ -1015,12 +1027,7 @@ export default class PDFDocument {
       const bytes = toUint8Array(font);
       const fontkit = this.assertFontkit();
       embedder = subset
-        ? await CustomFontSubsetEmbedder.for(
-            fontkit,
-            bytes,
-            customName,
-            features,
-          )
+        ? await CustomFontSubsetEmbedder.for(fontkit, bytes, customName, features)
         : await CustomFontEmbedder.for(fontkit, bytes, customName, features);
     } else {
       throw new TypeError(
@@ -1169,16 +1176,10 @@ export default class PDFDocument {
     indices: number[] = [0],
   ): Promise<PDFEmbeddedPage[]> {
     this.assertNotDisposed();
-    assertIs(pdf, 'pdf', [
-      'string',
-      Uint8Array,
-      ArrayBuffer,
-      [PDFDocument, 'PDFDocument'],
-    ]);
+    assertIs(pdf, 'pdf', ['string', Uint8Array, ArrayBuffer, [PDFDocument, 'PDFDocument']]);
     assertIs(indices, 'indices', [Array]);
 
-    const srcDoc =
-      pdf instanceof PDFDocument ? pdf : await PDFDocument.load(pdf);
+    const srcDoc = pdf instanceof PDFDocument ? pdf : await PDFDocument.load(pdf);
 
     const srcPages = pluckIndices(srcDoc.getPages(), indices);
 
@@ -1224,11 +1225,7 @@ export default class PDFDocument {
   ): Promise<PDFEmbeddedPage> {
     this.assertNotDisposed();
     assertIs(page, 'page', [[PDFPage, 'PDFPage']]);
-    const [embeddedPage] = await this.embedPages(
-      [page],
-      [boundingBox],
-      [transformationMatrix],
-    );
+    const [embeddedPage] = await this.embedPages([page], [boundingBox], [transformationMatrix]);
     return embeddedPage;
   }
 
@@ -1361,10 +1358,7 @@ export default class PDFDocument {
     await this.flush();
 
     const Writer = useObjectStreams ? PDFStreamWriter : PDFWriter;
-    const bytes = await Writer.forContext(
-      this.context,
-      objectsPerTick,
-    ).serializeToBuffer();
+    const bytes = await Writer.forContext(this.context, objectsPerTick).serializeToBuffer();
     if (dispose) this.dispose();
     return bytes;
   }
@@ -1471,10 +1465,7 @@ export default class PDFDocument {
 function assertIsLiteralOrHexString(
   pdfObject: PDFObject,
 ): asserts pdfObject is PDFHexString | PDFString {
-  if (
-    !(pdfObject instanceof PDFHexString) &&
-    !(pdfObject instanceof PDFString)
-  ) {
+  if (!(pdfObject instanceof PDFHexString) && !(pdfObject instanceof PDFString)) {
     throw new UnexpectedObjectTypeError([PDFHexString, PDFString], pdfObject);
   }
 }

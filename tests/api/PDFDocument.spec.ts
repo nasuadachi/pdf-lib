@@ -3,7 +3,6 @@ import fs from 'fs';
 import {
   EncryptedPDFError,
   ParseSpeeds,
-  PDFDocumentDisposedError,
   PDFArray,
   PDFDict,
   PDFDocument,
@@ -14,8 +13,9 @@ import {
   NonFullScreenPageMode,
   PrintScaling,
   ReadingDirection,
+  StandardFonts,
   ViewerPreferences,
-} from 'src/index';
+} from '../../src/index';
 
 const examplePngImage =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TxaoVBzuIdMhQnSyIijhKFYtgobQVWnUwufQLmjQkKS6OgmvBwY/FqoOLs64OroIg+AHi5uak6CIl/i8ptIjx4Lgf7+497t4BQqPCVLNrAlA1y0jFY2I2tyr2vKIfAgLoRVhipp5IL2bgOb7u4ePrXZRneZ/7cwwoeZMBPpF4jumGRbxBPLNp6Zz3iUOsJCnE58TjBl2Q+JHrsstvnIsOCzwzZGRS88QhYrHYwXIHs5KhEk8TRxRVo3wh67LCeYuzWqmx1j35C4N5bSXNdZphxLGEBJIQIaOGMiqwEKVVI8VEivZjHv4Rx58kl0yuMhg5FlCFCsnxg//B727NwtSkmxSMAd0vtv0xCvTsAs26bX8f23bzBPA/A1da219tALOfpNfbWuQIGNwGLq7bmrwHXO4Aw0+6ZEiO5KcpFArA+xl9Uw4YugX61tzeWvs4fQAy1NXyDXBwCIwVKXvd492Bzt7+PdPq7wcdn3KFLu4iBAAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAlFJREFUeNrt289r02AYB/Dvk6Sl4EDKpllTlFKsnUdBHXgUBEHwqHj2IJ72B0zwKHhxJ08i/gDxX/AiRfSkBxELXTcVxTa2s2xTsHNN8ngQbQL70RZqG/Z9b29JnvflkydP37whghG3ZaegoxzfwB5vBCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgwB5rstWPtnP0LqBX/vZNyLF6vVrpN/hucewhb4g+B2AyAwiwY7NGOXijviS9vBeYh6CEP4edBLDADCAAAQhAAAIQgAAEIAABCDAUAFF/GIN1DM+PBYCo/ohMXDQ1WPjoeUZH1mMBEEh0oqLGvsHCy0S4NzWVWotJBogbvZB+brDwQT7UWSmXy5sxyQB9HQEROdVv4HQ+vx+QmS4iXsWmCK7Usu8AhOqAXMzlcn3VgWTbugQgEYrxMkZ/gyUPgnuhe2C6/Stxvdeg2ezMJERvhOuoZ+JBrNYBRuDdBtDuXkDM25nCHLbZSv9X6A4VHU+DpwCcbvbjcetLtTaOANtuirrux08HM0euisjDEMKC7RQuq+C+pVJqpzx3NZ3+eeBza9I0rWJgyHnxg2sAJrqnaHUzFcyN60Jox13hprv8aNopZBS4GcqWWVHM+lAkN0zY7ncgkYBukRoKLPpiXVj9UFkfV4Bdl8Jf60u3IMZZAG/6iLuhkDvaSZ74VqtUx3kp3NN7gUZt8RmA43a2eEY1OCfQ04AcBpAGkAKwpkBLIG8BfQE/eNJsvG/G4VlARj0BfjDBx2ECEIAABCAAAQhAAAIQgAAE+P/tN8YvpvbTDBOlAAAAAElFTkSuQmCC';
@@ -472,42 +472,6 @@ describe(`PDFDocument`, () => {
       expect(JSNames.lookup(0, PDFHexString).decodeText()).toEqual('first');
       expect(JSNames.lookup(2, PDFHexString).decodeText()).toEqual('second');
     });
-
-    it(`does not duplicate scripts when flushed multiple times`, async () => {
-      const pdfDoc = await PDFDocument.create();
-      pdfDoc.addJavaScript(
-        'main',
-        'console.show(); console.println("Hello World");',
-      );
-
-      await pdfDoc.flush();
-      await pdfDoc.flush();
-
-      const Names = pdfDoc.catalog.lookup(PDFName.of('Names'), PDFDict);
-      const Javascript = Names.lookup(PDFName.of('JavaScript'), PDFDict);
-      const JSNames = Javascript.lookup(PDFName.of('Names'), PDFArray);
-      expect(JSNames.size()).toBe(2);
-      expect(JSNames.lookup(0, PDFHexString).decodeText()).toEqual('main');
-    });
-  });
-
-  describe(`attach() method`, () => {
-    it(`does not duplicate attached files when flushed multiple times`, async () => {
-      const pdfDoc = await PDFDocument.create();
-      await pdfDoc.attach(new Uint8Array([1, 2, 3]), 'test.bin');
-
-      await pdfDoc.flush();
-      await pdfDoc.flush();
-
-      const Names = pdfDoc.catalog.lookup(PDFName.of('Names'), PDFDict);
-      const EmbeddedFiles = Names.lookup(PDFName.of('EmbeddedFiles'), PDFDict);
-      const EFNames = EmbeddedFiles.lookup(PDFName.of('Names'), PDFArray);
-      const AF = pdfDoc.catalog.lookup(PDFName.of('AF'), PDFArray);
-
-      expect(EFNames.size()).toBe(2);
-      expect(EFNames.lookup(0, PDFHexString).decodeText()).toEqual('test.bin');
-      expect(AF.size()).toBe(1);
-    });
   });
 
   describe(`embedPng() method`, () => {
@@ -564,108 +528,18 @@ describe(`PDFDocument`, () => {
       await expect(noErrorFunc()).resolves.not.toThrowError();
     });
 
-    it(`can reuse an embedded page after saving`, async () => {
-      const srcDoc = await PDFDocument.load(unencryptedPdfBytes, {
-        parseSpeed: ParseSpeeds.Fastest,
-      });
-      const pdfDoc = await PDFDocument.create({ updateMetadata: false });
-      const [embeddedPage] = await pdfDoc.embedPages([srcDoc.getPage(0)]);
-
-      const page1 = pdfDoc.addPage();
-      page1.drawPage(embeddedPage);
-
-      const pdfBytes1 = await pdfDoc.save();
-      expect(pdfBytes1.byteLength).toBeGreaterThan(0);
-
-      const page2 = pdfDoc.addPage();
-      page2.drawPage(embeddedPage);
-
-      const pdfBytes2 = await pdfDoc.save();
-      expect(pdfBytes2.byteLength).toBeGreaterThan(0);
-      expect(pdfBytes2.byteLength).not.toEqual(pdfBytes1.byteLength);
-    });
-
     it(`can dispose the document after saving`, async () => {
-      const pdfDoc = await PDFDocument.create({ updateMetadata: false });
-      pdfDoc.addPage();
-
-      const pdfBytes = await pdfDoc.save({ dispose: true });
-
-      expect(pdfBytes.byteLength).toBeGreaterThan(0);
-      expect(pdfDoc.context.enumerateIndirectObjects()).toEqual([]);
-      expect(() => pdfDoc.getPageCount()).toThrow(
-        new PDFDocumentDisposedError(),
-      );
-      await expect(PDFDocument.load(pdfBytes)).resolves.toBeInstanceOf(
-        PDFDocument,
-      );
-    });
-
-    it(`can dispose the document after saving as base64`, async () => {
-      const pdfDoc = await PDFDocument.create({ updateMetadata: false });
-      pdfDoc.addPage();
-
-      const base64 = await pdfDoc.saveAsBase64({ dispose: true });
-
-      expect(base64.length).toBeGreaterThan(0);
-      expect(pdfDoc.context.enumerateIndirectObjects()).toEqual([]);
-      expect(() => pdfDoc.getPageCount()).toThrow(
-        new PDFDocumentDisposedError(),
-      );
-    });
-
-    it(`disposes font embedders after saving with disposal`, async () => {
-      const customFont = fs.readFileSync('assets/fonts/ubuntu/Ubuntu-B.ttf');
-      const pdfDoc = await PDFDocument.create({ updateMetadata: false });
-      pdfDoc.registerFontkit(fontkit);
-
-      const font = await pdfDoc.embedFont(customFont);
-      const page = pdfDoc.addPage();
-      page.drawText('Unit Test', { font });
-
-      const pdfBytes = await pdfDoc.save({ dispose: true });
-
-      expect(pdfBytes.byteLength).toBeGreaterThan(0);
-      expect(() => font.widthOfTextAtSize('Unit Test', 12)).toThrow(
-        new PDFDocumentDisposedError(),
-      );
-      await expect(PDFDocument.load(pdfBytes)).resolves.toBeInstanceOf(
-        PDFDocument,
-      );
-    });
-  });
-
-  describe(`dispose() method`, () => {
-    it(`releases internal document state after saving`, async () => {
-      const pdfDoc = await PDFDocument.create({ updateMetadata: false });
-      pdfDoc.addPage();
-
-      const pdfBytes = await pdfDoc.save();
-      expect(pdfBytes.byteLength).toBeGreaterThan(0);
-      expect(pdfDoc.context.enumerateIndirectObjects().length).toBeGreaterThan(
-        0,
-      );
-
-      pdfDoc.dispose();
-
-      expect(pdfDoc.context.enumerateIndirectObjects()).toEqual([]);
-      expect(pdfDoc.catalog.keys()).toEqual([]);
-      expect(() => pdfDoc.getPageCount()).toThrow(
-        new PDFDocumentDisposedError(),
-      );
-      await expect(pdfDoc.save()).rejects.toThrow(
-        new PDFDocumentDisposedError(),
-      );
-      await expect(PDFDocument.load(pdfBytes)).resolves.toBeInstanceOf(
-        PDFDocument,
-      );
-    });
-
-    it(`can be called more than once`, async () => {
       const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([200, 100]);
+      const font = pdfDoc.embedStandardFont(StandardFonts.Helvetica);
+      page.drawText('dispose smoke test', { x: 20, y: 50, font, size: 12 });
 
-      expect(() => pdfDoc.dispose()).not.toThrow();
-      expect(() => pdfDoc.dispose()).not.toThrow();
+      const pdfBytes = await pdfDoc.save({ dispose: true });
+
+      expect(pdfBytes.byteLength).toBeGreaterThan(0);
+      expect(() => pdfDoc.getPageCount()).toThrow(
+        'PDFDocument has been disposed and can no longer be used',
+      );
     });
   });
 

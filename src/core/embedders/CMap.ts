@@ -1,12 +1,7 @@
-import { Glyph } from 'src/types/fontkit';
+import { Glyph } from '../../types/fontkit';
 
-import { toHexString, toHexStringOfMinLength } from 'src/utils';
-import {
-  hasSurrogates,
-  highSurrogate,
-  isWithinBMP,
-  lowSurrogate,
-} from 'src/utils/unicode';
+import { toHexString, toHexStringOfMinLength } from '../../utils';
+import { hasSurrogates, highSurrogate, isWithinBMP, lowSurrogate } from '../../utils/unicode';
 
 /** [fontId, codePoint] */
 type BfChar = [string, string];

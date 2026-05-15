@@ -1,19 +1,20 @@
 import fontkit, { Font, Glyph } from '@pdf-lib/fontkit';
 import fs from 'fs';
+import path from 'path';
 
-import { createCmap } from 'src/core/embedders/CMap';
-import { byAscendingId, sortedUniq } from 'src/utils';
+import { createCmap } from '../../../src/core/embedders/CMap';
+import { byAscendingId, sortedUniq } from '../../../src/utils';
 
-const ubuntuFont = fs.readFileSync('./assets/fonts/ubuntu/Ubuntu-R.ttf');
+const ASSETS_DIR = path.resolve(__dirname, '../../../assets/fonts');
+const ubuntuFont = fs.readFileSync(path.join(ASSETS_DIR, 'ubuntu/Ubuntu-R.ttf'));
 const sourceHansJpFont = fs.readFileSync(
-  './assets/fonts/source_hans_jp/SourceHanSerifJP-Regular.otf',
+  path.join(ASSETS_DIR, 'source_hans_jp/SourceHanSerifJP-Regular.otf'),
 );
 
-const ubuntuFontCmap = fs.readFileSync(
-  './tests/core/embedders/data/Ubuntu-R.ttf.cmap',
-);
+const DATA_DIR = path.join(__dirname, 'data');
+const ubuntuFontCmap = fs.readFileSync(path.join(DATA_DIR, 'Ubuntu-R.ttf.cmap'));
 const sourceHansJpFontCmap = fs.readFileSync(
-  './tests/core/embedders/data/SourceHanSerifJP-Regular.otf.cmap',
+  path.join(DATA_DIR, 'SourceHanSerifJP-Regular.otf.cmap'),
 );
 
 const allGlyphsInFontSortedById = (font: Font) => {

@@ -1,16 +1,13 @@
-import PDFDocument from 'src/api/PDFDocument';
-import PDFPage from 'src/api/PDFPage';
-import PDFField, {
-  FieldAppearanceOptions,
-  assertFieldAppearanceOptions,
-} from 'src/api/form/PDFField';
+import PDFDocument from '../PDFDocument';
+import PDFPage from '../PDFPage';
+import PDFField, { FieldAppearanceOptions, assertFieldAppearanceOptions } from './PDFField';
 import {
   AppearanceProviderFor,
   normalizeAppearance,
   defaultRadioGroupAppearanceProvider,
-} from 'src/api/form/appearances';
-import { rgb } from 'src/api/colors';
-import { degrees } from 'src/api/rotations';
+} from './appearances';
+import { rgb } from '../colors';
+import { degrees } from '../rotations';
 
 import {
   PDFName,
@@ -20,8 +17,8 @@ import {
   PDFWidgetAnnotation,
   PDFAcroRadioButton,
   AcroButtonFlags,
-} from 'src/core';
-import { assertIs, assertOrUndefined, assertIsOneOf } from 'src/utils';
+} from '../../core';
+import { assertIs, assertOrUndefined, assertIsOneOf } from '../../utils';
 
 /**
  * Represents a radio group field of a [[PDFForm]].
@@ -54,25 +51,16 @@ export default class PDFRadioGroup extends PDFField {
    * @param ref The unique reference for this radio group.
    * @param doc The document to which this radio group will belong.
    */
-  static of = (
-    acroRadioButton: PDFAcroRadioButton,
-    ref: PDFRef,
-    doc: PDFDocument,
-  ) => new PDFRadioGroup(acroRadioButton, ref, doc);
+  static of = (acroRadioButton: PDFAcroRadioButton, ref: PDFRef, doc: PDFDocument) =>
+    new PDFRadioGroup(acroRadioButton, ref, doc);
 
   /** The low-level PDFAcroRadioButton wrapped by this radio group. */
   readonly acroField: PDFAcroRadioButton;
 
-  private constructor(
-    acroRadioButton: PDFAcroRadioButton,
-    ref: PDFRef,
-    doc: PDFDocument,
-  ) {
+  private constructor(acroRadioButton: PDFAcroRadioButton, ref: PDFRef, doc: PDFDocument) {
     super(acroRadioButton, ref, doc);
 
-    assertIs(acroRadioButton, 'acroRadioButton', [
-      [PDFAcroRadioButton, 'PDFAcroRadioButton'],
-    ]);
+    assertIs(acroRadioButton, 'acroRadioButton', [[PDFAcroRadioButton, 'PDFAcroRadioButton']]);
 
     this.acroField = acroRadioButton;
   }
@@ -349,11 +337,7 @@ export default class PDFRadioGroup extends PDFField {
    * @param page The page to which the radio button widget should be added.
    * @param options The options to be used when adding the radio button widget.
    */
-  addOptionToPage(
-    option: string,
-    page: PDFPage,
-    options?: FieldAppearanceOptions,
-  ) {
+  addOptionToPage(option: string, page: PDFPage, options?: FieldAppearanceOptions) {
     assertIs(option, 'option', ['string']);
     assertIs(page, 'page', [[PDFPage, 'PDFPage']]);
     assertFieldAppearanceOptions(options);

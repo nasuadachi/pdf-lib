@@ -1,13 +1,8 @@
-import Embeddable from 'src/api//Embeddable';
-import { PDFDocumentDisposedError } from 'src/api/errors';
-import PDFDocument from 'src/api/PDFDocument';
-import {
-  CustomFontEmbedder,
-  PDFHexString,
-  PDFRef,
-  StandardFontEmbedder,
-} from 'src/core';
-import { assertIs, assertOrUndefined } from 'src/utils';
+import Embeddable from './Embeddable';
+import { PDFDocumentDisposedError } from './errors';
+import PDFDocument from './PDFDocument';
+import { CustomFontEmbedder, PDFHexString, PDFRef, StandardFontEmbedder } from '../core';
+import { assertIs, assertOrUndefined } from '../utils';
 
 export type FontEmbedder = CustomFontEmbedder | StandardFontEmbedder;
 

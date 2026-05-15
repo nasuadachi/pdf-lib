@@ -4,10 +4,10 @@ import {
   PDFRawStream,
   PDFXRefStreamParser,
   ReparseError,
-} from 'src/index';
+} from '../../../src/index';
 
 const readData = (file: string) =>
-  new Uint8Array(fs.readFileSync(`./tests/core/parser/data/${file}`));
+  new Uint8Array(fs.readFileSync(`${__dirname}/data/${file}`));
 
 describe(`PDFXRefStreamParser`, () => {
   it(`can parse XRef streams (1)`, () => {

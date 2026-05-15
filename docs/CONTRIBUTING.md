@@ -73,7 +73,7 @@ You can develop `pdf-lib` on Windows, Mac, or Linux machines. While most of the 
 
 In order to work on `pdf-lib`, please ensure you have installed the following:
 
-- **Node.js** provides the runtime needed to run this project. ([Installation instructions](https://nodejs.org/en/download/) - need `v9.0.0` or greater).
+- **Node.js** provides the runtime needed to run this project. ([Installation instructions](https://nodejs.org/en/download/) - Node `22.17.0` or newer Node 22 releases are supported for local builds).
 - **Yarn** is the package manager used for this project. ([Installation instructions](https://yarnpkg.com/en/docs/install) - need `v1.12.0` or greater).
 - **Git** is the SCM used for this project. ([Installation instructions](https://git-scm.com/downloads) - need `2.17.2` or greater)
 
@@ -198,12 +198,13 @@ Flamegraphs are incredibly useful visual tools for troubleshooting performance i
 
 For most development, manual compilation isn't necessary. The scratchpad and unit tests are usually all you need to test your code changes. But manual compilation _is_ necessary prior to running the integration tests or releasing a new version of the code to NPM.
 
-Compiling the project will produce 4 artifacts:
+Compiling the project will produce these artifacts:
 
-- **`compiled/cjs`** - a directory containing a CommonJS version of the project (uses `require` instead of `import`). This folder contains `.js` and [`.d.ts`](https://stackoverflow.com/a/21247316) files, rather than the `.ts` files that the project source is written in.
-- **`compiled/es`** - a directory containing an ES2015 version of the project (uses `import` instead of `require`). This folder contains `.js` and [`.d.ts`](https://stackoverflow.com/a/21247316) files, rather than the `.ts` files that the project source is written in.
-- **`compiled/dist/pdf-lib.js`** - a single JavaScript file containing a [UMD](https://www.davidbcalhoun.com/2014/what-is-amd-commonjs-and-umd/) version of the project.
-- **`compiled/dist/pdf-lib.min.js`** - a single JavaScript file containing a minified [UMD](https://www.davidbcalhoun.com/2014/what-is-amd-commonjs-and-umd/) version of the project.
+- **`cjs/`** - a CommonJS version of the project (uses `require` instead of `import`).
+- **`es/`** - an ES2015 module version of the project (uses `import` instead of `require`).
+- **`dist/pdf-lib.js`** - a single JavaScript file containing a [UMD](https://www.davidbcalhoun.com/2014/what-is-amd-commonjs-and-umd/) version of the project.
+- **`dist/pdf-lib.min.js`** - a single JavaScript file containing a minified [UMD](https://www.davidbcalhoun.com/2014/what-is-amd-commonjs-and-umd/) version of the project.
+- **`ts3.4/`** - downlevel declaration files for older TypeScript consumers.
 
 To compile the project, execute the following:
 
@@ -215,9 +216,9 @@ This should output something like the following:
 
 ```
 yarn run v1.16.0
-$ yarn build:cjs && yarn build:es && yarn build:umd && yarn build:umd:min
-$ ttsc --module commonjs --outDir cjs
-$ ttsc --module ES2015 --outDir es
+$ yarn build:cjs && yarn build:es && yarn build:esm && yarn build:esm:min && yarn build:umd && yarn build:umd:min && yarn build:downlevel-dts
+$ tsc --module commonjs --outDir cjs
+$ tsc --module ES2015 --outDir es
 $ rollup --config rollup.config.js --file dist/pdf-lib.js
 
 es/index.js → dist/pdf-lib.js...
@@ -229,7 +230,7 @@ created dist/pdf-lib.min.js in 4s
 ✨  Done in 17.34s.
 ```
 
-The compiled artifacts will be located in the `cjs/`, `es/`, and `dist/` directories.
+The compiled artifacts will be located in the `cjs/`, `es/`, `dist/`, and `ts3.4/` directories.
 
 ## Running the Linter
 

@@ -1,11 +1,11 @@
-import PDFArray from 'src/core/objects/PDFArray';
-import PDFDict, { DictMap } from 'src/core/objects/PDFDict';
-import PDFName from 'src/core/objects/PDFName';
-import PDFNumber from 'src/core/objects/PDFNumber';
-import PDFRef from 'src/core/objects/PDFRef';
-import PDFContext from 'src/core/PDFContext';
-import PDFPageLeaf from 'src/core/structures/PDFPageLeaf';
-import { InvalidTargetIndexError, CorruptPageTreeError } from 'src/core/errors';
+import PDFArray from '../objects/PDFArray';
+import PDFDict, { DictMap } from '../objects/PDFDict';
+import PDFName from '../objects/PDFName';
+import PDFNumber from '../objects/PDFNumber';
+import PDFRef from '../objects/PDFRef';
+import PDFContext from '../PDFContext';
+import PDFPageLeaf from './PDFPageLeaf';
+import { InvalidTargetIndexError, CorruptPageTreeError } from '../errors';
 
 export type TreeNode = PDFPageTree | PDFPageLeaf;
 
@@ -19,8 +19,7 @@ class PDFPageTree extends PDFDict {
     return new PDFPageTree(dict, context);
   };
 
-  static fromMapWithContext = (map: DictMap, context: PDFContext) =>
-    new PDFPageTree(map, context);
+  static fromMapWithContext = (map: DictMap, context: PDFContext) => new PDFPageTree(map, context);
 
   Parent(): PDFPageTree | undefined {
     return this.lookup(PDFName.of('Parent')) as PDFPageTree | undefined;
@@ -75,9 +74,7 @@ class PDFPageTree extends PDFDict {
       if (kid instanceof PDFPageTree) {
         if (kid.Count().asNumber() > leafsRemainingUntilTarget) {
           // Dig in
-          return (
-            kid.insertLeafNode(leafRef, leafsRemainingUntilTarget) || kidRef
-          );
+          return kid.insertLeafNode(leafRef, leafsRemainingUntilTarget) || kidRef;
         } else {
           // Move on
           leafsRemainingUntilTarget -= kid.Count().asNumber();

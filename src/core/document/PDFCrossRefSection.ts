@@ -1,6 +1,6 @@
-import PDFRef from 'src/core/objects/PDFRef';
-import CharCodes from 'src/core/syntax/CharCodes';
-import { copyStringIntoBuffer, padStart } from 'src/utils';
+import PDFRef from '../objects/PDFRef';
+import CharCodes from '../syntax/CharCodes';
+import { copyStringIntoBuffer, padStart } from '../../utils';
 
 export interface Entry {
   ref: PDFRef;
@@ -43,18 +43,10 @@ class PDFCrossRefSection {
   toString(): string {
     let section = `xref\n`;
 
-    for (
-      let rangeIdx = 0, rangeLen = this.subsections.length;
-      rangeIdx < rangeLen;
-      rangeIdx++
-    ) {
+    for (let rangeIdx = 0, rangeLen = this.subsections.length; rangeIdx < rangeLen; rangeIdx++) {
       const range = this.subsections[rangeIdx];
       section += `${range[0].ref.objectNumber} ${range.length}\n`;
-      for (
-        let entryIdx = 0, entryLen = range.length;
-        entryIdx < entryLen;
-        entryIdx++
-      ) {
+      for (let entryIdx = 0, entryLen = range.length; entryIdx < entryLen; entryIdx++) {
         const entry = range[entryIdx];
         section += padStart(String(entry.offset), 10, '0');
         section += ' ';
@@ -121,11 +113,7 @@ class PDFCrossRefSection {
     return offset - initialOffset;
   }
 
-  private copyEntriesIntoBuffer(
-    entries: Entry[],
-    buffer: Uint8Array,
-    offset: number,
-  ): number {
+  private copyEntriesIntoBuffer(entries: Entry[], buffer: Uint8Array, offset: number): number {
     const length = entries.length;
 
     for (let idx = 0; idx < length; idx++) {

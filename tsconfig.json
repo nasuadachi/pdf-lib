@@ -36,10 +36,7 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "preserveSymlinks": true,
-    "moduleResolution": "node",
-
-    /* Plugins */
-    "plugins": [{ "transform": "@zerollup/ts-transform-paths" }]
+    "moduleResolution": "node"
   },
   "include": ["src/**/*"]
 }

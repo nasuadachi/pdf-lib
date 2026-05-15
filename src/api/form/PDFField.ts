@@ -1,7 +1,7 @@
-import PDFDocument from 'src/api/PDFDocument';
-import PDFFont from 'src/api/PDFFont';
-import { AppearanceMapping } from 'src/api/form/appearances';
-import { Color, colorToComponents, setFillingColor } from 'src/api/colors';
+import PDFDocument from '../PDFDocument';
+import PDFFont from '../PDFFont';
+import { AppearanceMapping } from './appearances';
+import { Color, colorToComponents, setFillingColor } from '../colors';
 import {
   Rotation,
   toDegrees,
@@ -9,7 +9,7 @@ import {
   reduceRotation,
   adjustDimsForRotation,
   degrees,
-} from 'src/api/rotations';
+} from '../rotations';
 
 import {
   PDFRef,
@@ -21,8 +21,8 @@ import {
   AcroFieldFlags,
   PDFAcroTerminal,
   AnnotationFlags,
-} from 'src/core';
-import { assertIs, assertMultiple, assertOrUndefined } from 'src/utils';
+} from '../../core';
+import { assertIs, assertMultiple, assertOrUndefined } from '../../utils';
 import { ImageAlignment } from '../image';
 import PDFImage from '../PDFImage';
 import { drawImage, rotateInPlace } from '../operations';
@@ -41,22 +41,14 @@ export interface FieldAppearanceOptions {
   hidden?: boolean;
 }
 
-export const assertFieldAppearanceOptions = (
-  options?: FieldAppearanceOptions,
-) => {
+export const assertFieldAppearanceOptions = (options?: FieldAppearanceOptions) => {
   assertOrUndefined(options?.x, 'options.x', ['number']);
   assertOrUndefined(options?.y, 'options.y', ['number']);
   assertOrUndefined(options?.width, 'options.width', ['number']);
   assertOrUndefined(options?.height, 'options.height', ['number']);
-  assertOrUndefined(options?.textColor, 'options.textColor', [
-    [Object, 'Color'],
-  ]);
-  assertOrUndefined(options?.backgroundColor, 'options.backgroundColor', [
-    [Object, 'Color'],
-  ]);
-  assertOrUndefined(options?.borderColor, 'options.borderColor', [
-    [Object, 'Color'],
-  ]);
+  assertOrUndefined(options?.textColor, 'options.textColor', [[Object, 'Color']]);
+  assertOrUndefined(options?.backgroundColor, 'options.backgroundColor', [[Object, 'Color']]);
+  assertOrUndefined(options?.borderColor, 'options.borderColor', [[Object, 'Color']]);
   assertOrUndefined(options?.borderWidth, 'options.borderWidth', ['number']);
   assertOrUndefined(options?.rotate, 'options.rotate', [[Object, 'Rotation']]);
 };
@@ -91,11 +83,7 @@ export default class PDFField {
   /** The document to which this field belongs. */
   readonly doc: PDFDocument;
 
-  protected constructor(
-    acroField: PDFAcroTerminal,
-    ref: PDFRef,
-    doc: PDFDocument,
-  ) {
+  protected constructor(acroField: PDFAcroTerminal, ref: PDFRef, doc: PDFDocument) {
     assertIs(acroField, 'acroField', [[PDFAcroTerminal, 'PDFAcroTerminal']]);
     assertIs(ref, 'ref', [[PDFRef, 'PDFRef']]);
     assertIs(doc, 'doc', [[PDFDocument, 'PDFDocument']]);
@@ -250,18 +238,12 @@ export default class PDFField {
 
   /** @ignore */
   needsAppearancesUpdate(): boolean {
-    throw new MethodNotImplementedError(
-      this.constructor.name,
-      'needsAppearancesUpdate',
-    );
+    throw new MethodNotImplementedError(this.constructor.name, 'needsAppearancesUpdate');
   }
 
   /** @ignore */
   defaultUpdateAppearances(_font: PDFFont) {
-    throw new MethodNotImplementedError(
-      this.constructor.name,
-      'defaultUpdateAppearances',
-    );
+    throw new MethodNotImplementedError(this.constructor.name, 'defaultUpdateAppearances');
   }
 
   protected markAsDirty() {
@@ -309,11 +291,7 @@ export default class PDFField {
     const widget = PDFWidgetAnnotation.create(this.doc.context, this.ref);
 
     // Set widget properties
-    const rect = rotateRectangle(
-      { x, y, width, height },
-      borderWidth,
-      degreesAngle,
-    );
+    const rect = rotateRectangle({ x, y, width, height }, borderWidth, degreesAngle);
     widget.setRectangle(rect);
 
     if (pageRef) widget.setP(pageRef);
@@ -358,16 +336,11 @@ export default class PDFField {
   protected updateOnOffWidgetAppearance(
     widget: PDFWidgetAnnotation,
     onValue: PDFName,
-    {
-      normal,
-      rollover,
-      down,
-    }: AppearanceMapping<{ on: PDFOperator[]; off: PDFOperator[] }>,
+    { normal, rollover, down }: AppearanceMapping<{ on: PDFOperator[]; off: PDFOperator[] }>,
   ) {
     this.updateWidgetAppearances(widget, {
       normal: this.createAppearanceDict(widget, normal, onValue),
-      rollover:
-        rollover && this.createAppearanceDict(widget, rollover, onValue),
+      rollover: rollover && this.createAppearanceDict(widget, rollover, onValue),
       down: down && this.createAppearanceDict(widget, down, onValue),
     });
   }
@@ -463,10 +436,7 @@ export default class PDFField {
     const rotate = rotateInPlace({ ...rectangle, rotation });
 
     const adj = adjustDimsForRotation(rectangle, rotation);
-    const imageDims = image.scaleToFit(
-      adj.width - borderWidth * 2,
-      adj.height - borderWidth * 2,
-    );
+    const imageDims = image.scaleToFit(adj.width - borderWidth * 2, adj.height - borderWidth * 2);
 
     // Support borders on images and maybe other properties
     const options = {

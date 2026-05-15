@@ -1,9 +1,9 @@
-import PDFDict from 'src/core/objects/PDFDict';
-import PDFName from 'src/core/objects/PDFName';
-import PDFRef from 'src/core/objects/PDFRef';
-import PDFContext from 'src/core/PDFContext';
-import PDFFlateStream from 'src/core/structures/PDFFlateStream';
-import { bytesFor, Cache, reverseArray, sizeInBytes, sum } from 'src/utils';
+import PDFDict from '../objects/PDFDict';
+import PDFName from '../objects/PDFName';
+import PDFRef from '../objects/PDFRef';
+import PDFContext from '../PDFContext';
+import PDFFlateStream from './PDFFlateStream';
+import { bytesFor, Cache, reverseArray, sizeInBytes, sum } from '../../utils';
 
 export enum EntryType {
   Deleted = 0,
@@ -102,11 +102,7 @@ class PDFCrossRefStream extends PDFFlateStream {
     const byteWidths = this.maxByteWidthsCache.access();
     let value = '';
 
-    for (
-      let entryIdx = 0, entriesLen = entryTuples.length;
-      entryIdx < entriesLen;
-      entryIdx++
-    ) {
+    for (let entryIdx = 0, entriesLen = entryTuples.length; entryIdx < entriesLen; entryIdx++) {
       const [first, second, third] = entryTuples[entryIdx];
 
       const firstBytes = reverseArray(bytesFor(first));
@@ -133,11 +129,7 @@ class PDFCrossRefStream extends PDFFlateStream {
     const buffer = new Uint8Array(this.getUnencodedContentsSize());
 
     let offset = 0;
-    for (
-      let entryIdx = 0, entriesLen = entryTuples.length;
-      entryIdx < entriesLen;
-      entryIdx++
-    ) {
+    for (let entryIdx = 0, entriesLen = entryTuples.length; entryIdx < entriesLen; entryIdx++) {
       const [first, second, third] = entryTuples[entryIdx];
 
       const firstBytes = reverseArray(bytesFor(first));

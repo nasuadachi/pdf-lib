@@ -1,4 +1,4 @@
-import { Color, rgb } from 'src/api/colors';
+import { Color, rgb } from './colors';
 import {
   drawImage,
   drawLine,
@@ -7,18 +7,19 @@ import {
   drawRectangle,
   drawSvgPath,
   drawEllipse,
-} from 'src/api/operations';
+} from './operations';
 import {
   popGraphicsState,
   pushGraphicsState,
   translate,
   LineCapStyle,
   scale,
-} from 'src/api/operators';
-import PDFDocument from 'src/api/PDFDocument';
-import PDFEmbeddedPage from 'src/api/PDFEmbeddedPage';
-import PDFFont from 'src/api/PDFFont';
-import PDFImage from 'src/api/PDFImage';
+  FillRule,
+} from './operators';
+import PDFDocument from './PDFDocument';
+import PDFEmbeddedPage from './PDFEmbeddedPage';
+import PDFFont from './PDFFont';
+import PDFImage from './PDFImage';
 import {
   PDFPageDrawCircleOptions,
   PDFPageDrawEllipseOptions,
@@ -30,9 +31,10 @@ import {
   PDFPageDrawSVGOptions,
   PDFPageDrawTextOptions,
   BlendMode,
-} from 'src/api/PDFPageOptions';
-import { degrees, Rotation, toDegrees } from 'src/api/rotations';
-import { StandardFonts } from 'src/api/StandardFonts';
+  PDFPageDrawSVGElementOptions,
+} from './PDFPageOptions';
+import { degrees, Rotation, toDegrees } from './rotations';
+import { StandardFonts } from './StandardFonts';
 import {
   PDFContentStream,
   PDFHexString,
@@ -42,7 +44,7 @@ import {
   PDFRef,
   PDFDict,
   PDFArray,
-} from 'src/core';
+} from '../core';
 import {
   assertEachIs,
   assertIs,
@@ -54,7 +56,8 @@ import {
   lineSplit,
   assertRangeOrUndefined,
   assertIsOneOfOrUndefined,
-} from 'src/utils';
+} from '../utils';
+import { drawSvg } from './svg';
 
 /**
  * Represents a single page of a [[PDFDocument]].
@@ -556,10 +559,7 @@ export default class PDFPage {
     this.node.normalize();
     this.getContentStream();
 
-    const start = this.createContentStream(
-      pushGraphicsState(),
-      translate(x, y),
-    );
+    const start = this.createContentStream(pushGraphicsState(), translate(x, y));
     const startRef = this.doc.context.register(start);
 
     const end = this.createContentStream(popGraphicsState());
@@ -1011,6 +1011,8 @@ export default class PDFPage {
         y: options.y ?? this.y,
         lineHeight: options.lineHeight ?? this.lineHeight,
         graphicsState: graphicsStateKey,
+        matrix: options.matrix,
+        clipSpaces: options.clipSpaces,
       }),
     );
 
@@ -1076,6 +1078,8 @@ export default class PDFPage {
         xSkew: options.xSkew ?? degrees(0),
         ySkew: options.ySkew ?? degrees(0),
         graphicsState: graphicsStateKey,
+        matrix: options.matrix,
+        clipSpaces: options.clipSpaces,
       }),
     );
   }
@@ -1112,14 +1116,9 @@ export default class PDFPage {
    * @param embeddedPage The embedded page to be drawn.
    * @param options The options to be used when drawing the embedded page.
    */
-  drawPage(
-    embeddedPage: PDFEmbeddedPage,
-    options: PDFPageDrawPageOptions = {},
-  ): void {
+  drawPage(embeddedPage: PDFEmbeddedPage, options: PDFPageDrawPageOptions = {}): void {
     // TODO: Reuse embeddedPage XObject name if we've already added this embeddedPage to Resources.XObjects
-    assertIs(embeddedPage, 'embeddedPage', [
-      [PDFEmbeddedPage, 'PDFEmbeddedPage'],
-    ]);
+    assertIs(embeddedPage, 'embeddedPage', [[PDFEmbeddedPage, 'PDFEmbeddedPage']]);
     assertOrUndefined(options.x, 'options.x', ['number']);
     assertOrUndefined(options.y, 'options.y', ['number']);
     assertOrUndefined(options.xScale, 'options.xScale', ['number']);
@@ -1132,10 +1131,7 @@ export default class PDFPage {
     assertRangeOrUndefined(options.opacity, 'opacity.opacity', 0, 1);
     assertIsOneOfOrUndefined(options.blendMode, 'options.blendMode', BlendMode);
 
-    const xObjectKey = this.node.newXObject(
-      'EmbeddedPdfPage',
-      embeddedPage.ref,
-    );
+    const xObjectKey = this.node.newXObject('EmbeddedPdfPage', embeddedPage.ref);
 
     const graphicsStateKey = this.maybeEmbedGraphicsState({
       opacity: options.opacity,
@@ -1144,16 +1140,16 @@ export default class PDFPage {
 
     // prettier-ignore
     const xScale = (
-        options.width  !== undefined ? options.width / embeddedPage.width
-      : options.xScale !== undefined ? options.xScale
-      : 1
+      options.width !== undefined ? options.width / embeddedPage.width
+        : options.xScale !== undefined ? options.xScale
+          : 1
     );
 
     // prettier-ignore
     const yScale = (
-        options.height !== undefined ? options.height / embeddedPage.height
-      : options.yScale !== undefined ? options.yScale
-      : 1
+      options.height !== undefined ? options.height / embeddedPage.height
+        : options.yScale !== undefined ? options.yScale
+          : 1
     );
 
     const contentStream = this.getContentStream();
@@ -1217,27 +1213,13 @@ export default class PDFPage {
     assertOrUndefined(options.borderWidth, 'options.borderWidth', ['number']);
     assertOrUndefined(options.color, 'options.color', [[Object, 'Color']]);
     assertRangeOrUndefined(options.opacity, 'opacity.opacity', 0, 1);
-    assertOrUndefined(options.borderColor, 'options.borderColor', [
-      [Object, 'Color'],
-    ]);
-    assertOrUndefined(options.borderDashArray, 'options.borderDashArray', [
-      Array,
-    ]);
-    assertOrUndefined(options.borderDashPhase, 'options.borderDashPhase', [
-      'number',
-    ]);
-    assertIsOneOfOrUndefined(
-      options.borderLineCap,
-      'options.borderLineCap',
-      LineCapStyle,
-    );
-    assertRangeOrUndefined(
-      options.borderOpacity,
-      'options.borderOpacity',
-      0,
-      1,
-    );
+    assertOrUndefined(options.borderColor, 'options.borderColor', [[Object, 'Color']]);
+    assertOrUndefined(options.borderDashArray, 'options.borderDashArray', [Array]);
+    assertOrUndefined(options.borderDashPhase, 'options.borderDashPhase', ['number']);
+    assertIsOneOfOrUndefined(options.borderLineCap, 'options.borderLineCap', LineCapStyle);
+    assertRangeOrUndefined(options.borderOpacity, 'options.borderOpacity', 0, 1);
     assertIsOneOfOrUndefined(options.blendMode, 'options.blendMode', BlendMode);
+    assertIsOneOfOrUndefined(options.fillRule, 'options.fillRule', FillRule);
 
     const graphicsStateKey = this.maybeEmbedGraphicsState({
       opacity: options.opacity,
@@ -1263,6 +1245,9 @@ export default class PDFPage {
         borderDashPhase: options.borderDashPhase ?? undefined,
         borderLineCap: options.borderLineCap ?? undefined,
         graphicsState: graphicsStateKey,
+        fillRule: options.fillRule,
+        matrix: options.matrix,
+        clipSpaces: options.clipSpaces,
       }),
     );
   }
@@ -1283,12 +1268,8 @@ export default class PDFPage {
    * @param options The options to be used when drawing the line.
    */
   drawLine(options: PDFPageDrawLineOptions): void {
-    assertIs(options.start, 'options.start', [
-      [Object, '{ x: number, y: number }'],
-    ]);
-    assertIs(options.end, 'options.end', [
-      [Object, '{ x: number, y: number }'],
-    ]);
+    assertIs(options.start, 'options.start', [[Object, '{ x: number, y: number }']]);
+    assertIs(options.end, 'options.end', [[Object, '{ x: number, y: number }']]);
     assertIs(options.start.x, 'options.start.x', ['number']);
     assertIs(options.start.y, 'options.start.y', ['number']);
     assertIs(options.end.x, 'options.end.x', ['number']);
@@ -1321,6 +1302,8 @@ export default class PDFPage {
         dashPhase: options.dashPhase ?? undefined,
         lineCap: options.lineCap ?? undefined,
         graphicsState: graphicsStateKey,
+        matrix: options.matrix,
+        clipSpaces: options.clipSpaces,
       }),
     );
   }
@@ -1341,6 +1324,7 @@ export default class PDFPage {
    *   color: rgb(0.75, 0.2, 0.2),
    *   opacity: 0.5,
    *   borderOpacity: 0.75,
+   *   radius: 0.1,
    * })
    * ```
    * @param options The options to be used when drawing the rectangle.
@@ -1356,27 +1340,13 @@ export default class PDFPage {
     assertOrUndefined(options.borderWidth, 'options.borderWidth', ['number']);
     assertOrUndefined(options.color, 'options.color', [[Object, 'Color']]);
     assertRangeOrUndefined(options.opacity, 'opacity.opacity', 0, 1);
-    assertOrUndefined(options.borderColor, 'options.borderColor', [
-      [Object, 'Color'],
-    ]);
-    assertOrUndefined(options.borderDashArray, 'options.borderDashArray', [
-      Array,
-    ]);
-    assertOrUndefined(options.borderDashPhase, 'options.borderDashPhase', [
-      'number',
-    ]);
-    assertIsOneOfOrUndefined(
-      options.borderLineCap,
-      'options.borderLineCap',
-      LineCapStyle,
-    );
-    assertRangeOrUndefined(
-      options.borderOpacity,
-      'options.borderOpacity',
-      0,
-      1,
-    );
+    assertOrUndefined(options.borderColor, 'options.borderColor', [[Object, 'Color']]);
+    assertOrUndefined(options.borderDashArray, 'options.borderDashArray', [Array]);
+    assertOrUndefined(options.borderDashPhase, 'options.borderDashPhase', ['number']);
+    assertIsOneOfOrUndefined(options.borderLineCap, 'options.borderLineCap', LineCapStyle);
+    assertRangeOrUndefined(options.borderOpacity, 'options.borderOpacity', 0, 1);
     assertIsOneOfOrUndefined(options.blendMode, 'options.blendMode', BlendMode);
+    assertOrUndefined(options.radius, 'options.radius', ['number']);
 
     const graphicsStateKey = this.maybeEmbedGraphicsState({
       opacity: options.opacity,
@@ -1405,6 +1375,9 @@ export default class PDFPage {
         borderDashPhase: options.borderDashPhase ?? undefined,
         graphicsState: graphicsStateKey,
         borderLineCap: options.borderLineCap ?? undefined,
+        matrix: options.matrix,
+        clipSpaces: options.clipSpaces,
+        radius: options.radius ?? 0,
       }),
     );
   }
@@ -1461,27 +1434,12 @@ export default class PDFPage {
     assertOrUndefined(options.rotate, 'options.rotate', [[Object, 'Rotation']]);
     assertOrUndefined(options.color, 'options.color', [[Object, 'Color']]);
     assertRangeOrUndefined(options.opacity, 'opacity.opacity', 0, 1);
-    assertOrUndefined(options.borderColor, 'options.borderColor', [
-      [Object, 'Color'],
-    ]);
-    assertRangeOrUndefined(
-      options.borderOpacity,
-      'options.borderOpacity',
-      0,
-      1,
-    );
+    assertOrUndefined(options.borderColor, 'options.borderColor', [[Object, 'Color']]);
+    assertRangeOrUndefined(options.borderOpacity, 'options.borderOpacity', 0, 1);
     assertOrUndefined(options.borderWidth, 'options.borderWidth', ['number']);
-    assertOrUndefined(options.borderDashArray, 'options.borderDashArray', [
-      Array,
-    ]);
-    assertOrUndefined(options.borderDashPhase, 'options.borderDashPhase', [
-      'number',
-    ]);
-    assertIsOneOfOrUndefined(
-      options.borderLineCap,
-      'options.borderLineCap',
-      LineCapStyle,
-    );
+    assertOrUndefined(options.borderDashArray, 'options.borderDashArray', [Array]);
+    assertOrUndefined(options.borderDashPhase, 'options.borderDashPhase', ['number']);
+    assertIsOneOfOrUndefined(options.borderLineCap, 'options.borderLineCap', LineCapStyle);
     assertIsOneOfOrUndefined(options.blendMode, 'options.blendMode', BlendMode);
     const graphicsStateKey = this.maybeEmbedGraphicsState({
       opacity: options.opacity,
@@ -1508,6 +1466,8 @@ export default class PDFPage {
         borderDashPhase: options.borderDashPhase ?? undefined,
         borderLineCap: options.borderLineCap ?? undefined,
         graphicsState: graphicsStateKey,
+        matrix: options.matrix,
+        clipSpaces: options.clipSpaces,
       }),
     );
   }
@@ -1549,7 +1509,34 @@ export default class PDFPage {
     return { oldFont, oldFontKey, newFont, newFontKey };
   }
 
-  private getFont(): [PDFFont, PDFName] {
+  /**
+   * Draw an SVG on this page. For example:
+   * ```js
+   * const svg = '<svg><path d="M 0,20 L 100,160 Q 130,200 150,120 C 190,-40 200,200 300,150 L 400,90"></path></svg>'
+   *
+   * // Draw svg
+   * page.drawSvg(svg, { x: 25, y: 75 })
+   * ```
+   * @param svg The SVG to be drawn.
+   * @param options The options to be used when drawing the SVG.
+   */
+  async drawSvg(svg: string, options: PDFPageDrawSVGElementOptions = {}): Promise<void> {
+    assertIs(svg, 'svg', ['string']);
+    assertOrUndefined(options.x, 'options.x', ['number']);
+    assertOrUndefined(options.y, 'options.y', ['number']);
+    assertOrUndefined(options.width, 'options.width', ['number']);
+    assertOrUndefined(options.height, 'options.height', ['number']);
+
+    await drawSvg(this, svg, {
+      x: options.x ?? this.x,
+      y: options.y ?? this.y,
+      fonts: options.fonts,
+      width: options.width,
+      height: options.height,
+    });
+  }
+
+  getFont(): [PDFFont, PDFName] {
     if (!this.font || !this.fontKey) {
       const font = this.doc.embedStandardFont(StandardFonts.Helvetica);
       this.setFont(font);
@@ -1583,11 +1570,7 @@ export default class PDFPage {
   }): PDFName | undefined {
     const { opacity, borderOpacity, blendMode } = options;
 
-    if (
-      opacity === undefined &&
-      borderOpacity === undefined &&
-      blendMode === undefined
-    ) {
+    if (opacity === undefined && borderOpacity === undefined && blendMode === undefined) {
       return undefined;
     }
 

@@ -1,24 +1,24 @@
 import pako from 'pako';
 
-import PDFHeader from 'src/core/document/PDFHeader';
-import { UnexpectedObjectTypeError } from 'src/core/errors';
-import PDFArray from 'src/core/objects/PDFArray';
-import PDFBool from 'src/core/objects/PDFBool';
-import PDFDict from 'src/core/objects/PDFDict';
-import PDFHexString from 'src/core/objects/PDFHexString';
-import PDFName from 'src/core/objects/PDFName';
-import PDFNull from 'src/core/objects/PDFNull';
-import PDFNumber from 'src/core/objects/PDFNumber';
-import PDFObject from 'src/core/objects/PDFObject';
-import PDFRawStream from 'src/core/objects/PDFRawStream';
-import PDFRef from 'src/core/objects/PDFRef';
-import PDFStream from 'src/core/objects/PDFStream';
-import PDFString from 'src/core/objects/PDFString';
-import PDFOperator from 'src/core/operators/PDFOperator';
-import Ops from 'src/core/operators/PDFOperatorNames';
-import PDFContentStream from 'src/core/structures/PDFContentStream';
-import { typedArrayFor } from 'src/utils';
-import { SimpleRNG } from 'src/utils/rng';
+import PDFHeader from './document/PDFHeader';
+import { UnexpectedObjectTypeError } from './errors';
+import PDFArray from './objects/PDFArray';
+import PDFBool from './objects/PDFBool';
+import PDFDict from './objects/PDFDict';
+import PDFHexString from './objects/PDFHexString';
+import PDFName from './objects/PDFName';
+import PDFNull from './objects/PDFNull';
+import PDFNumber from './objects/PDFNumber';
+import PDFObject from './objects/PDFObject';
+import PDFRawStream from './objects/PDFRawStream';
+import PDFRef from './objects/PDFRef';
+import PDFStream from './objects/PDFStream';
+import PDFString from './objects/PDFString';
+import PDFOperator from './operators/PDFOperator';
+import Ops from './operators/PDFOperatorNames';
+import PDFContentStream from './structures/PDFContentStream';
+import { typedArrayFor } from '../utils';
+import { SimpleRNG } from '../utils/rng';
 
 type LookupKey = PDFRef | PDFObject | undefined;
 
@@ -30,21 +30,13 @@ interface LiteralArray {
   [index: number]: Literal | PDFObject;
 }
 
-type Literal =
-  | LiteralObject
-  | LiteralArray
-  | string
-  | number
-  | boolean
-  | null
-  | undefined;
+type Literal = LiteralObject | LiteralArray | string | number | boolean | null | undefined;
 
-const byAscendingObjectNumber = (
-  [a]: [PDFRef, PDFObject],
-  [b]: [PDFRef, PDFObject],
-) => a.objectNumber - b.objectNumber;
+const byAscendingObjectNumber = ([a]: [PDFRef, PDFObject], [b]: [PDFRef, PDFObject]) =>
+  a.objectNumber - b.objectNumber;
 
 class PDFContext {
+  isDecrypted = true;
   static create = () => new PDFContext();
 
   largestObjectNumber: number;
@@ -105,10 +97,7 @@ class PDFContext {
   lookupMaybe(ref: LookupKey, type: typeof PDFArray): PDFArray | undefined;
   lookupMaybe(ref: LookupKey, type: typeof PDFBool): PDFBool | undefined;
   lookupMaybe(ref: LookupKey, type: typeof PDFDict): PDFDict | undefined;
-  lookupMaybe(
-    ref: LookupKey,
-    type: typeof PDFHexString,
-  ): PDFHexString | undefined;
+  lookupMaybe(ref: LookupKey, type: typeof PDFHexString): PDFHexString | undefined;
   lookupMaybe(ref: LookupKey, type: typeof PDFName): PDFName | undefined;
   lookupMaybe(ref: LookupKey, type: typeof PDFNull): typeof PDFNull | undefined;
   lookupMaybe(ref: LookupKey, type: typeof PDFNumber): PDFNumber | undefined;
@@ -188,9 +177,7 @@ class PDFContext {
   }
 
   enumerateIndirectObjects(): [PDFRef, PDFObject][] {
-    return Array.from(this.indirectObjects.entries()).sort(
-      byAscendingObjectNumber,
-    );
+    return Array.from(this.indirectObjects.entries()).sort(byAscendingObjectNumber);
   }
 
   obj(literal: null | undefined): typeof PDFNull;
@@ -229,34 +216,22 @@ class PDFContext {
     }
   }
 
-  stream(
-    contents: string | Uint8Array,
-    dict: LiteralObject = {},
-  ): PDFRawStream {
+  stream(contents: string | Uint8Array, dict: LiteralObject = {}): PDFRawStream {
     return PDFRawStream.of(this.obj(dict), typedArrayFor(contents));
   }
 
-  flateStream(
-    contents: string | Uint8Array,
-    dict: LiteralObject = {},
-  ): PDFRawStream {
+  flateStream(contents: string | Uint8Array, dict: LiteralObject = {}): PDFRawStream {
     return this.stream(pako.deflate(typedArrayFor(contents)), {
       ...dict,
       Filter: 'FlateDecode',
     });
   }
 
-  contentStream(
-    operators: PDFOperator[],
-    dict: LiteralObject = {},
-  ): PDFContentStream {
+  contentStream(operators: PDFOperator[], dict: LiteralObject = {}): PDFContentStream {
     return PDFContentStream.of(this.obj(dict), operators);
   }
 
-  formXObject(
-    operators: PDFOperator[],
-    dict: LiteralObject = {},
-  ): PDFContentStream {
+  formXObject(operators: PDFOperator[], dict: LiteralObject = {}): PDFContentStream {
     return this.contentStream(operators, {
       BBox: this.obj([0, 0, 0, 0]),
       Matrix: this.obj([1, 0, 0, 1, 0, 0]),

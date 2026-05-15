@@ -6,14 +6,14 @@
  * under the Apache 2.0 open source license.
  */
 
-import DecodeStream from 'src/core/streams/DecodeStream';
-import { StreamType } from 'src/core/streams/Stream';
+import DecodeStream from './DecodeStream';
+import { StreamType } from './Stream';
 
 class LZWStream extends DecodeStream {
   private stream: StreamType;
   private cachedData: number;
   private bitsCached: number;
-  private lzwState: {
+  private lzwState?: {
     earlyChange: 0 | 1;
     codeLength: number;
     nextCode: number;
@@ -25,11 +25,7 @@ class LZWStream extends DecodeStream {
     prevCode?: number | null;
   };
 
-  constructor(
-    stream: StreamType,
-    maybeLength: number | undefined,
-    earlyChange: 0 | 1,
-  ) {
+  constructor(stream: StreamType, maybeLength: number | undefined, earlyChange: 0 | 1) {
     super(maybeLength);
 
     this.stream = stream;
@@ -117,10 +113,7 @@ class LZWStream extends DecodeStream {
         codeLength =
           (nextCode + earlyChange) & (nextCode + earlyChange - 1)
             ? codeLength
-            : Math.min(
-                Math.log(nextCode + earlyChange) / 0.6931471805599453 + 1,
-                12,
-              ) | 0;
+            : Math.min(Math.log(nextCode + earlyChange) / 0.6931471805599453 + 1, 12) | 0;
       }
       prevCode = code;
 

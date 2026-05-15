@@ -1,8 +1,8 @@
-import { Font, Fontkit, Glyph, Subset, TypeFeatures } from 'src/types/fontkit';
+import { Font, Fontkit, Glyph, Subset, TypeFeatures } from '../../types/fontkit';
 
-import CustomFontEmbedder from 'src/core/embedders/CustomFontEmbedder';
-import PDFHexString from 'src/core/objects/PDFHexString';
-import { Cache, mergeUint8Arrays, toHexStringOfMinLength } from 'src/utils';
+import CustomFontEmbedder from './CustomFontEmbedder';
+import PDFHexString from '../objects/PDFHexString';
+import { Cache, mergeUint8Arrays, toHexStringOfMinLength } from '../../utils';
 
 /**
  * A note of thanks to the developers of https://github.com/foliojs/pdfkit, as
@@ -17,12 +17,7 @@ class CustomFontSubsetEmbedder extends CustomFontEmbedder {
     fontFeatures?: TypeFeatures,
   ) {
     const font = await fontkit.create(fontData);
-    return new CustomFontSubsetEmbedder(
-      font,
-      fontData,
-      customFontName,
-      fontFeatures,
-    );
+    return new CustomFontSubsetEmbedder(font, fontData, customFontName, fontFeatures);
   }
 
   private readonly subset: Subset;
@@ -71,12 +66,22 @@ class CustomFontSubsetEmbedder extends CustomFontEmbedder {
 
   protected serializeFont(): Promise<Uint8Array> {
     return new Promise((resolve, reject) => {
-      const parts: Uint8Array[] = [];
-      this.subset
-        .encodeStream()
-        .on('data', (bytes) => parts.push(bytes))
-        .on('end', () => resolve(mergeUint8Arrays(parts)))
-        .on('error' as any, (err) => reject(err));
+      if ('encodeStream' in this.subset) {
+        const parts: Uint8Array[] = [];
+        this.subset
+          .encodeStream()
+          .on('data', (bytes) => parts.push(bytes))
+          .on('end', () => resolve(mergeUint8Arrays(parts)))
+          .on('error' as any, (err) => reject(err));
+      } else if ('encode' in this.subset) {
+        try {
+          resolve(this.subset.encode());
+        } catch (err) {
+          reject(err);
+        }
+      } else {
+        reject(new Error('Subset does not have an encode method'));
+      }
     });
   }
 }

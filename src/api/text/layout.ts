@@ -1,15 +1,9 @@
-import PDFFont from 'src/api/PDFFont';
-import { CombedTextLayoutError } from 'src/api/errors';
-import { TextAlignment } from 'src/api/text/alignment';
+import PDFFont from '../PDFFont';
+import { CombedTextLayoutError } from '../errors';
+import { TextAlignment } from './alignment';
 
-import { PDFHexString } from 'src/core';
-import {
-  cleanText,
-  lineSplit,
-  mergeLines,
-  charAtIndex,
-  charSplit,
-} from 'src/utils';
+import { PDFHexString } from '../../core';
+import { cleanText, lineSplit, mergeLines, charAtIndex, charSplit } from '../../utils';
 
 export interface TextPosition {
   text: string;
@@ -41,11 +35,7 @@ const computeFontSize = (
   while (fontSize < MAX_FONT_SIZE) {
     let linesUsed = 0;
 
-    for (
-      let lineIdx = 0, lineLen = lines.length;
-      lineIdx < lineLen;
-      lineIdx++
-    ) {
+    for (let lineIdx = 0, lineLen = lines.length; lineIdx < lineLen; lineIdx++) {
       linesUsed += 1;
 
       const line = lines[lineIdx];
@@ -131,12 +121,7 @@ const lastIndexOfWhitespace = (line: string) => {
   return undefined;
 };
 
-const splitOutLines = (
-  input: string,
-  maxWidth: number,
-  font: PDFFont,
-  fontSize: number,
-) => {
+const splitOutLines = (input: string, maxWidth: number, font: PDFFont, fontSize: number) => {
   let lastWhitespaceIdx = input.length;
   while (lastWhitespaceIdx > 0) {
     const line = input.substring(0, lastWhitespaceIdx);

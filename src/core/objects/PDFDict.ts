@@ -1,27 +1,28 @@
-import PDFArray from 'src/core/objects/PDFArray';
-import PDFBool from 'src/core/objects/PDFBool';
-import PDFHexString from 'src/core/objects/PDFHexString';
-import PDFName from 'src/core/objects/PDFName';
-import PDFNull from 'src/core/objects/PDFNull';
-import PDFNumber from 'src/core/objects/PDFNumber';
-import PDFObject from 'src/core/objects/PDFObject';
-import PDFRef from 'src/core/objects/PDFRef';
-import PDFStream from 'src/core/objects/PDFStream';
-import PDFString from 'src/core/objects/PDFString';
-import PDFContext from 'src/core/PDFContext';
-import CharCodes from 'src/core/syntax/CharCodes';
+import PDFArray from './PDFArray';
+import PDFBool from './PDFBool';
+import PDFHexString from './PDFHexString';
+import PDFName from './PDFName';
+import PDFNull from './PDFNull';
+import PDFNumber from './PDFNumber';
+import PDFObject from './PDFObject';
+import PDFRef from './PDFRef';
+import PDFStream from './PDFStream';
+import PDFString from './PDFString';
+import PDFContext from '../PDFContext';
+import CharCodes from '../syntax/CharCodes';
 
 export type DictMap = Map<PDFName, PDFObject>;
 
 class PDFDict extends PDFObject {
   static withContext = (context: PDFContext) => new PDFDict(new Map(), context);
 
-  static fromMapWithContext = (map: DictMap, context: PDFContext) =>
-    new PDFDict(map, context);
+  static fromMapWithContext = (map: DictMap, context: PDFContext) => new PDFDict(map, context);
 
   readonly context: PDFContext;
 
   private readonly dict: DictMap;
+
+  suppressEncryption: boolean = false;
 
   protected constructor(map: DictMap, context: PDFContext) {
     super();
@@ -64,10 +65,7 @@ class PDFDict extends PDFObject {
   lookupMaybe(key: PDFName, type: typeof PDFArray): PDFArray | undefined;
   lookupMaybe(key: PDFName, type: typeof PDFBool): PDFBool | undefined;
   lookupMaybe(key: PDFName, type: typeof PDFDict): PDFDict | undefined;
-  lookupMaybe(
-    key: PDFName,
-    type: typeof PDFHexString,
-  ): PDFHexString | undefined;
+  lookupMaybe(key: PDFName, type: typeof PDFHexString): PDFHexString | undefined;
   lookupMaybe(key: PDFName, type: typeof PDFName): PDFName | undefined;
   lookupMaybe(key: PDFName, type: typeof PDFNull): typeof PDFNull | undefined;
   lookupMaybe(key: PDFName, type: typeof PDFNumber): PDFNumber | undefined;
@@ -123,11 +121,7 @@ class PDFDict extends PDFObject {
     type1: typeof PDFString,
     type2: typeof PDFHexString,
   ): PDFString | PDFHexString;
-  lookup(
-    ref: PDFName,
-    type1: typeof PDFDict,
-    type2: typeof PDFStream,
-  ): PDFDict | PDFStream;
+  lookup(ref: PDFName, type1: typeof PDFDict, type2: typeof PDFStream): PDFDict | PDFStream;
   lookup(
     ref: PDFName,
     type1: typeof PDFString,

@@ -1,25 +1,16 @@
-import PDFDocument from 'src/api/PDFDocument';
-import PDFPage from 'src/api/PDFPage';
+import PDFDocument from '../PDFDocument';
+import PDFPage from '../PDFPage';
 import {
   AppearanceProviderFor,
   normalizeAppearance,
   defaultCheckBoxAppearanceProvider,
-} from 'src/api/form/appearances';
-import { rgb } from 'src/api/colors';
-import { degrees } from 'src/api/rotations';
-import PDFField, {
-  FieldAppearanceOptions,
-  assertFieldAppearanceOptions,
-} from 'src/api/form/PDFField';
+} from './appearances';
+import { rgb } from '../colors';
+import { degrees } from '../rotations';
+import PDFField, { FieldAppearanceOptions, assertFieldAppearanceOptions } from './PDFField';
 
-import {
-  PDFName,
-  PDFRef,
-  PDFDict,
-  PDFAcroCheckBox,
-  PDFWidgetAnnotation,
-} from 'src/core';
-import { assertIs, assertOrUndefined } from 'src/utils';
+import { PDFName, PDFRef, PDFDict, PDFAcroCheckBox, PDFWidgetAnnotation } from '../../core';
+import { assertIs, assertOrUndefined } from '../../utils';
 
 /**
  * Represents a check box field of a [[PDFForm]].
@@ -48,16 +39,10 @@ export default class PDFCheckBox extends PDFField {
   /** The low-level PDFAcroCheckBox wrapped by this check box. */
   readonly acroField: PDFAcroCheckBox;
 
-  private constructor(
-    acroCheckBox: PDFAcroCheckBox,
-    ref: PDFRef,
-    doc: PDFDocument,
-  ) {
+  private constructor(acroCheckBox: PDFAcroCheckBox, ref: PDFRef, doc: PDFDocument) {
     super(acroCheckBox, ref, doc);
 
-    assertIs(acroCheckBox, 'acroCheckBox', [
-      [PDFAcroCheckBox, 'PDFAcroCheckBox'],
-    ]);
+    assertIs(acroCheckBox, 'acroCheckBox', [[PDFAcroCheckBox, 'PDFAcroCheckBox']]);
 
     this.acroField = acroCheckBox;
   }

@@ -13,10 +13,10 @@ import {
   PDFRef,
   PDFString,
   ReparseError,
-} from 'src/index';
+} from '../../../src/index';
 
 const readData = (file: string) =>
-  new Uint8Array(fs.readFileSync(`./tests/core/parser/data/${file}`));
+  new Uint8Array(fs.readFileSync(`${__dirname}/data/${file}`));
 
 describe(`PDFObjectStreamParser`, () => {
   it(`parses simple object streams`, () => {

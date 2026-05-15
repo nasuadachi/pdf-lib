@@ -1,8 +1,8 @@
-import PDFDocument from 'src/api/PDFDocument';
-import PDFField from 'src/api/form/PDFField';
+import PDFDocument from '../PDFDocument';
+import PDFField from './PDFField';
 
-import { PDFRef, PDFAcroSignature } from 'src/core';
-import { assertIs } from 'src/utils';
+import { PDFRef, PDFAcroSignature } from '../../core';
+import { assertIs } from '../../utils';
 
 /**
  * Represents a signature field of a [[PDFForm]].
@@ -24,25 +24,16 @@ export default class PDFSignature extends PDFField {
    * @param ref The unique reference for this signature.
    * @param doc The document to which this signature will belong.
    */
-  static of = (
-    acroSignature: PDFAcroSignature,
-    ref: PDFRef,
-    doc: PDFDocument,
-  ) => new PDFSignature(acroSignature, ref, doc);
+  static of = (acroSignature: PDFAcroSignature, ref: PDFRef, doc: PDFDocument) =>
+    new PDFSignature(acroSignature, ref, doc);
 
   /** The low-level PDFAcroSignature wrapped by this signature. */
   readonly acroField: PDFAcroSignature;
 
-  private constructor(
-    acroSignature: PDFAcroSignature,
-    ref: PDFRef,
-    doc: PDFDocument,
-  ) {
+  private constructor(acroSignature: PDFAcroSignature, ref: PDFRef, doc: PDFDocument) {
     super(acroSignature, ref, doc);
 
-    assertIs(acroSignature, 'acroSignature', [
-      [PDFAcroSignature, 'PDFAcroSignature'],
-    ]);
+    assertIs(acroSignature, 'acroSignature', [[PDFAcroSignature, 'PDFAcroSignature']]);
 
     this.acroField = acroSignature;
   }

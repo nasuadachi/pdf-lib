@@ -1,9 +1,14 @@
 import fs from 'fs';
 
-import { PDFContext, PDFName, PDFRef, PDFStreamWriter } from 'src/index';
+import {
+  PDFContext,
+  PDFName,
+  PDFRef,
+  PDFStreamWriter,
+} from '../../../src/index';
 
 const expectedPdfBytes = new Uint8Array(
-  fs.readFileSync('./tests/core/writers/data/stream-writer-1.pdf'),
+  fs.readFileSync(`${__dirname}/data/stream-writer-1.pdf`),
 );
 
 const contentStreamText = `

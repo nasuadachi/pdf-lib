@@ -1,5 +1,5 @@
-import { decodeFromBase64DataUri } from 'src/utils/base64';
-import { charFromCode } from 'src/utils/strings';
+import { decodeFromBase64DataUri } from './base64';
+import { charFromCode } from './strings';
 
 export const last = <T>(array: T[]): T => array[array.length - 1];
 
@@ -22,8 +22,7 @@ export const mergeIntoTypedArray = (...arrays: (string | Uint8Array)[]) => {
   const typedArrays: Uint8Array[] = [];
   for (let idx = 0; idx < arrayCount; idx++) {
     const element = arrays[idx];
-    typedArrays[idx] =
-      element instanceof Uint8Array ? element : typedArrayFor(element);
+    typedArrays[idx] = element instanceof Uint8Array ? element : typedArrayFor(element);
   }
 
   let totalSize = 0;
@@ -84,6 +83,18 @@ export const sortedUniq = <T>(array: T[], indexer: (elem: T) => any): T[] => {
   return uniq;
 };
 
+export const isArrayEqual = <T>(arr1: ArrayLike<T>, arr2: ArrayLike<T>) => {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+  for (let i = 0, ii = arr1.length; i < ii; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false;
+    }
+  }
+  return true;
+};
+
 // Arrays and TypedArrays in JS both have .reverse() methods, which would seem
 // to negate the need for this function. However, not all runtimes support this
 // method (e.g. React Native). This function compensates for that fact.
@@ -127,9 +138,7 @@ export const pluckIndices = <T>(arr: T[], indices: number[]) => {
 export const canBeConvertedToUint8Array = (
   input: any,
 ): input is string | ArrayBuffer | Uint8Array =>
-  input instanceof Uint8Array ||
-  input instanceof ArrayBuffer ||
-  typeof input === 'string';
+  input instanceof Uint8Array || input instanceof ArrayBuffer || typeof input === 'string';
 
 export const toUint8Array = (input: string | ArrayBuffer | Uint8Array) => {
   if (typeof input === 'string') {
@@ -139,8 +148,6 @@ export const toUint8Array = (input: string | ArrayBuffer | Uint8Array) => {
   } else if (input instanceof Uint8Array) {
     return input;
   } else {
-    throw new TypeError(
-      '`input` must be one of `string | ArrayBuffer | Uint8Array`',
-    );
+    throw new TypeError('`input` must be one of `string | ArrayBuffer | Uint8Array`');
   }
 };
