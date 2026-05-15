@@ -114,6 +114,9 @@ iframe.src = url;
 - `docs/WEBKIT_MEMORY_RECORDING_TEST21_SUMMARY.json`
   - iPadOS Safari で `apps/web/test21.html` を動かした Safari Web Inspector
     timeline recording から、必要な集計だけを抜き出した JSON。
+- `docs/WEBKIT_MEMORY_RECORDING_TEST22_SUMMARY.json`
+  - iPadOS Safari で `apps/web/test22.html` を動かした Safari Web Inspector
+    timeline recording から、必要な集計だけを抜き出した JSON。
   - 元の recording JSON は約 1GB あるため repo には入れず、memory category、
     GC、Blob URL 数、主要イベント数だけを保存する。
 - `docs/WEBKIT_MEMORY_RECORDING_ANALYSIS_BRIEF.md`
@@ -430,6 +433,13 @@ JS 側の参照を減らす対策としては意味があるが、`iframe` に�
   - `page` category は 25.6 MB から 14.5 MB に減った。
   - 生成と `save({ dispose: true })` だけでは `test19` / `test20` のような
     大きな `page` 増加は再現しない。
+- `test22.html` の iPadOS Safari timeline recording を集計し、
+  `docs/WEBKIT_MEMORY_RECORDING_TEST22_SUMMARY.json` として保存した。
+  - memory total は 49.3 MB から 218.3 MB まで増えた。
+  - `page` category は 29.8 MB から 143.2 MB まで増えた。
+  - `blob:` URL は 30 個観測された。
+  - `iframe` に PDF を流さないことで `test20` より改善したが、繰り返し
+    object URL を作るだけでも Safari/WebKit 側の `page` 保持が残る可能性がある。
 
 ## 現在のステータス
 
@@ -441,6 +451,8 @@ Safari 実機で inline PDF iframe preview を完全に使わない方式を比�
 `test19` と `test20` の recording ではどちらも `page` category が大きく増えて
 いるため、`save({ dispose: true })` や Blob URL 回避だけで根本解決する可能性は
 低いです。一方で `test21` は生成のみなら大きな `page` 増加が出ないことを示して
-います。既存のライブラリ側 cleanup は維持しつつ、iPadOS Safari では inline PDF
-iframe preview を避け、別画面/別タブ表示またはダウンロード導線へ逃がす方向を
+います。`test22` は inline iframe preview を避けても、繰り返し object URL を
+作ると `page` 増加が残ることを示しています。既存のライブラリ側 cleanup は維持
+しつつ、iPadOS Safari では inline PDF iframe preview と自動 object URL 作成を
+避け、ユーザー操作時だけ別画面/別タブ表示またはダウンロード導線へ逃がす方向を
 優先します。
