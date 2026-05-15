@@ -27,8 +27,7 @@ export default class PDFEmbeddedFile implements Embeddable {
   /** The document to which this embedded file belongs. */
   readonly doc: PDFDocument;
 
-  private alreadyEmbedded = false;
-  private readonly embedder: FileEmbedder;
+  private embedder: FileEmbedder | undefined;
 
   private constructor(ref: PDFRef, doc: PDFDocument, embedder: FileEmbedder) {
     this.ref = ref;
@@ -46,45 +45,43 @@ export default class PDFEmbeddedFile implements Embeddable {
    * @returns Resolves when the embedding is complete.
    */
   async embed(): Promise<void> {
-    if (!this.alreadyEmbedded) {
-      const ref = await this.embedder.embedIntoContext(
-        this.doc.context,
-        this.ref,
-      );
+    if (!this.embedder) return;
 
-      if (!this.doc.catalog.has(PDFName.of('Names'))) {
-        this.doc.catalog.set(PDFName.of('Names'), this.doc.context.obj({}));
-      }
-      const Names = this.doc.catalog.lookup(PDFName.of('Names'), PDFDict);
+    const embedder = this.embedder;
+    const ref = await embedder.embedIntoContext(this.doc.context, this.ref);
 
-      if (!Names.has(PDFName.of('EmbeddedFiles'))) {
-        Names.set(PDFName.of('EmbeddedFiles'), this.doc.context.obj({}));
-      }
-      const EmbeddedFiles = Names.lookup(PDFName.of('EmbeddedFiles'), PDFDict);
-
-      if (!EmbeddedFiles.has(PDFName.of('Names'))) {
-        EmbeddedFiles.set(PDFName.of('Names'), this.doc.context.obj([]));
-      }
-      const EFNames = EmbeddedFiles.lookup(PDFName.of('Names'), PDFArray);
-
-      EFNames.push(PDFHexString.fromText(this.embedder.fileName));
-      EFNames.push(ref);
-
-      /**
-       * The AF-Tag is needed to achieve PDF-A3 compliance for embedded files
-       *
-       * The following document outlines the uses cases of the associated files (AF) tag.
-       * See:
-       * https://www.pdfa.org/wp-content/uploads/2018/10/PDF20_AN002-AF.pdf
-       */
-
-      if (!this.doc.catalog.has(PDFName.of('AF'))) {
-        this.doc.catalog.set(PDFName.of('AF'), this.doc.context.obj([]));
-      }
-      const AF = this.doc.catalog.lookup(PDFName.of('AF'), PDFArray);
-      AF.push(ref);
-
-      this.alreadyEmbedded = true;
+    if (!this.doc.catalog.has(PDFName.of('Names'))) {
+      this.doc.catalog.set(PDFName.of('Names'), this.doc.context.obj({}));
     }
+    const Names = this.doc.catalog.lookup(PDFName.of('Names'), PDFDict);
+
+    if (!Names.has(PDFName.of('EmbeddedFiles'))) {
+      Names.set(PDFName.of('EmbeddedFiles'), this.doc.context.obj({}));
+    }
+    const EmbeddedFiles = Names.lookup(PDFName.of('EmbeddedFiles'), PDFDict);
+
+    if (!EmbeddedFiles.has(PDFName.of('Names'))) {
+      EmbeddedFiles.set(PDFName.of('Names'), this.doc.context.obj([]));
+    }
+    const EFNames = EmbeddedFiles.lookup(PDFName.of('Names'), PDFArray);
+
+    EFNames.push(PDFHexString.fromText(embedder.fileName));
+    EFNames.push(ref);
+
+    /**
+     * The AF-Tag is needed to achieve PDF-A3 compliance for embedded files
+     *
+     * The following document outlines the uses cases of the associated files (AF) tag.
+     * See:
+     * https://www.pdfa.org/wp-content/uploads/2018/10/PDF20_AN002-AF.pdf
+     */
+
+    if (!this.doc.catalog.has(PDFName.of('AF'))) {
+      this.doc.catalog.set(PDFName.of('AF'), this.doc.context.obj([]));
+    }
+    const AF = this.doc.catalog.lookup(PDFName.of('AF'), PDFArray);
+    AF.push(ref);
+
+    this.embedder = undefined;
   }
 }

@@ -27,8 +27,7 @@ export default class PDFJavaScript implements Embeddable {
   /** The document to which this embedded script belongs. */
   readonly doc: PDFDocument;
 
-  private alreadyEmbedded = false;
-  private readonly embedder: JavaScriptEmbedder;
+  private embedder: JavaScriptEmbedder | undefined;
 
   private constructor(
     ref: PDFRef,
@@ -50,33 +49,30 @@ export default class PDFJavaScript implements Embeddable {
    * @returns Resolves when the embedding is complete.
    */
   async embed(): Promise<void> {
-    if (!this.alreadyEmbedded) {
-      const { catalog, context } = this.doc;
+    if (!this.embedder) return;
 
-      const ref = await this.embedder.embedIntoContext(
-        this.doc.context,
-        this.ref,
-      );
+    const { catalog, context } = this.doc;
+    const embedder = this.embedder;
+    const ref = await embedder.embedIntoContext(this.doc.context, this.ref);
 
-      if (!catalog.has(PDFName.of('Names'))) {
-        catalog.set(PDFName.of('Names'), context.obj({}));
-      }
-      const Names = catalog.lookup(PDFName.of('Names'), PDFDict);
-
-      if (!Names.has(PDFName.of('JavaScript'))) {
-        Names.set(PDFName.of('JavaScript'), context.obj({}));
-      }
-      const Javascript = Names.lookup(PDFName.of('JavaScript'), PDFDict);
-
-      if (!Javascript.has(PDFName.of('Names'))) {
-        Javascript.set(PDFName.of('Names'), context.obj([]));
-      }
-      const JSNames = Javascript.lookup(PDFName.of('Names'), PDFArray);
-
-      JSNames.push(PDFHexString.fromText(this.embedder.scriptName));
-      JSNames.push(ref);
-
-      this.alreadyEmbedded = true;
+    if (!catalog.has(PDFName.of('Names'))) {
+      catalog.set(PDFName.of('Names'), context.obj({}));
     }
+    const Names = catalog.lookup(PDFName.of('Names'), PDFDict);
+
+    if (!Names.has(PDFName.of('JavaScript'))) {
+      Names.set(PDFName.of('JavaScript'), context.obj({}));
+    }
+    const Javascript = Names.lookup(PDFName.of('JavaScript'), PDFDict);
+
+    if (!Javascript.has(PDFName.of('Names'))) {
+      Javascript.set(PDFName.of('Names'), context.obj([]));
+    }
+    const JSNames = Javascript.lookup(PDFName.of('Names'), PDFArray);
+
+    JSNames.push(PDFHexString.fromText(embedder.scriptName));
+    JSNames.push(ref);
+
+    this.embedder = undefined;
   }
 }

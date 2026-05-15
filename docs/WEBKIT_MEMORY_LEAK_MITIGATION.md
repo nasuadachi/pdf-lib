@@ -237,9 +237,13 @@ iPadOS 固有の検証:
   - 到達不能 object pruning
   - Safari/iPadOS 向けドキュメント
 - この進捗管理ドキュメントを追加した。
+- Phase 1 の一部として、`PDFEmbeddedPage`、`PDFEmbeddedFile`、
+  `PDFJavaScript` が embed 成功後に embedder 参照を解放するようにした。
+- `PDFDocument` の focused test に、複数回 `flush()` / `save()` しても
+  JavaScript、添付ファイル、埋め込みページの利用が壊れないことを追加した。
 
 ## 現在のステータス
 
-まだライブラリコード自体は変更していません。次に着手するなら、Phase 1 の
-`PDFEmbeddedPage`、`PDFEmbeddedFile`、`PDFJavaScript` の embedder 参照解放から
-始めるのが最も低リスクです。
+Phase 1 の embedder 参照解放は実装済みです。次に着手するなら、Phase 2 の
+`PDFDocument.dispose()` を小さく追加し、通常の `save()` と挙動を分離して
+検証できるようにするのがよいです。

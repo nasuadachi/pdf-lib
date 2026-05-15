@@ -471,6 +471,42 @@ describe(`PDFDocument`, () => {
       expect(JSNames.lookup(0, PDFHexString).decodeText()).toEqual('first');
       expect(JSNames.lookup(2, PDFHexString).decodeText()).toEqual('second');
     });
+
+    it(`does not duplicate scripts when flushed multiple times`, async () => {
+      const pdfDoc = await PDFDocument.create();
+      pdfDoc.addJavaScript(
+        'main',
+        'console.show(); console.println("Hello World");',
+      );
+
+      await pdfDoc.flush();
+      await pdfDoc.flush();
+
+      const Names = pdfDoc.catalog.lookup(PDFName.of('Names'), PDFDict);
+      const Javascript = Names.lookup(PDFName.of('JavaScript'), PDFDict);
+      const JSNames = Javascript.lookup(PDFName.of('Names'), PDFArray);
+      expect(JSNames.size()).toBe(2);
+      expect(JSNames.lookup(0, PDFHexString).decodeText()).toEqual('main');
+    });
+  });
+
+  describe(`attach() method`, () => {
+    it(`does not duplicate attached files when flushed multiple times`, async () => {
+      const pdfDoc = await PDFDocument.create();
+      await pdfDoc.attach(new Uint8Array([1, 2, 3]), 'test.bin');
+
+      await pdfDoc.flush();
+      await pdfDoc.flush();
+
+      const Names = pdfDoc.catalog.lookup(PDFName.of('Names'), PDFDict);
+      const EmbeddedFiles = Names.lookup(PDFName.of('EmbeddedFiles'), PDFDict);
+      const EFNames = EmbeddedFiles.lookup(PDFName.of('Names'), PDFArray);
+      const AF = pdfDoc.catalog.lookup(PDFName.of('AF'), PDFArray);
+
+      expect(EFNames.size()).toBe(2);
+      expect(EFNames.lookup(0, PDFHexString).decodeText()).toEqual('test.bin');
+      expect(AF.size()).toBe(1);
+    });
   });
 
   describe(`embedPng() method`, () => {
@@ -525,6 +561,27 @@ describe(`PDFDocument`, () => {
       };
 
       await expect(noErrorFunc()).resolves.not.toThrowError();
+    });
+
+    it(`can reuse an embedded page after saving`, async () => {
+      const srcDoc = await PDFDocument.load(unencryptedPdfBytes, {
+        parseSpeed: ParseSpeeds.Fastest,
+      });
+      const pdfDoc = await PDFDocument.create({ updateMetadata: false });
+      const [embeddedPage] = await pdfDoc.embedPages([srcDoc.getPage(0)]);
+
+      const page1 = pdfDoc.addPage();
+      page1.drawPage(embeddedPage);
+
+      const pdfBytes1 = await pdfDoc.save();
+      expect(pdfBytes1.byteLength).toBeGreaterThan(0);
+
+      const page2 = pdfDoc.addPage();
+      page2.drawPage(embeddedPage);
+
+      const pdfBytes2 = await pdfDoc.save();
+      expect(pdfBytes2.byteLength).toBeGreaterThan(0);
+      expect(pdfBytes2.byteLength).not.toEqual(pdfBytes1.byteLength);
     });
   });
 
