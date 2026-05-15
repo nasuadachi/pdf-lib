@@ -5,34 +5,31 @@
       http-equiv="Content-Security-Policy"
       content="
         default-src 'self' 'unsafe-inline' data: resource:;
-        object-src 'self' data:;
-        frame-src 'self' data:;
+        object-src 'none';
+        frame-src 'none';
       "
     />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <link rel="stylesheet" type="text/css" href="/apps/web/index.css" />
-    <title>Test 20</title>
+    <title>Test 21</title>
     <script type="text/javascript" src="/dist/pdf-lib.js"></script>
     <script type="text/javascript" src="/apps/web/utils.js"></script>
   </head>
 
   <body>
     <div id="button-container">
-      <button onclick="window.location.href = '/apps/web/test19.html'">
+      <button onclick="window.location.href = '/apps/web/test20.html'">
         Prev
       </button>
       <button onclick="runStressTest(30)">Run 30</button>
       <button onclick="runStressTest(100)">Run 100</button>
       <button onclick="stopStressTest()">Stop</button>
-      <button onclick="window.location.href = '/apps/web/test21.html'">
-        Next
-      </button>
+      <button disabled>Next</button>
       <button id="status" disabled>Idle</button>
     </div>
     <div id="animation-target"></div>
-    <iframe id="iframe"></iframe>
   </body>
 
   <script type="text/javascript">
@@ -42,7 +39,6 @@
 
     let shouldStopStressTest = false;
     let stressTestRunId = 0;
-    let currentPreviewUrl;
 
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -68,7 +64,7 @@
       const page = pdfDoc.addPage([612, 792]);
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-      page.drawText(`Server-backed memory stress: ${iteration}`, {
+      page.drawText(`Generation-only memory stress: ${iteration}`, {
         x: 48,
         y: 720,
         size: 24,
@@ -89,56 +85,21 @@
       return pdfDoc.save({ dispose: true });
     };
 
-    const deletePreviewUrl = async (url) => {
-      if (!url) return;
-      await fetch(url, { method: 'DELETE' }).catch(() => {});
-    };
-
-    const cleanupPreviewIframe = async () => {
-      document.getElementById('iframe').src = 'about:blank';
-      await deletePreviewUrl(currentPreviewUrl);
-      currentPreviewUrl = undefined;
-    };
-
-    const renderPdfBytesViaServer = async (pdfBytes) => {
-      await cleanupPreviewIframe();
-
-      const response = await fetch('/__pdf_preview', {
-        method: 'POST',
-        headers: { 'content-type': 'application/pdf' },
-        body: pdfBytes,
-      });
-
-      if (!response.ok) {
-        throw new Error('Start with `yarn apps:web:preview` to use test20');
-      }
-
-      const { url } = await response.json();
-      currentPreviewUrl = url;
-      document.getElementById('iframe').src = url;
-    };
-
     async function runStressTest(iterations) {
       const runId = ++stressTestRunId;
       shouldStopStressTest = false;
-      await cleanupPreviewIframe();
       let completedIteration = 0;
 
       for (let iteration = 1; iteration <= iterations; iteration++) {
         if (shouldStopStressTest || runId !== stressTestRunId) break;
 
-        setStatus(`Rendering ${iteration}/${iterations}${getMemoryStatus()}`);
+        setStatus(`Generating ${iteration}/${iterations}${getMemoryStatus()}`);
 
-        try {
-          const pdfBytes = await createPdfBytes(iteration);
-          if (shouldStopStressTest || runId !== stressTestRunId) break;
-          await renderPdfBytesViaServer(pdfBytes);
-          completedIteration = iteration;
-          setCompletedStatus(iterations, iteration);
-        } catch (error) {
-          setStatus(error.message);
-          break;
-        }
+        await createPdfBytes(iteration);
+        if (shouldStopStressTest || runId !== stressTestRunId) break;
+
+        completedIteration = iteration;
+        setCompletedStatus(iterations, iteration);
 
         await sleep(120);
       }
@@ -149,15 +110,15 @@
         completedIteration === iterations
       ) {
         await sleep(250);
-        await cleanupPreviewIframe();
         setCompletedStatus(iterations, completedIteration, ' / メモリ解放済み');
+      } else if (runId === stressTestRunId && shouldStopStressTest) {
+        setStatus('Stopped');
       }
     }
 
-    async function stopStressTest() {
+    function stopStressTest() {
       shouldStopStressTest = true;
       stressTestRunId += 1;
-      await cleanupPreviewIframe();
       setStatus('Stopped');
     }
   </script>

@@ -99,6 +99,9 @@ iframe.src = url;
 - `apps/web/preview-server.js`
   - `test20.html` 用の小さな検証サーバー。生成済み PDF bytes を POST で受け、
     `blob:` URL ではなく通常の HTTP PDF URL として返す。
+- `apps/web/test21.html`
+  - `iframe` 表示も network preview も行わず、PDF 生成と
+    `save({ dispose: true })` だけを繰り返す切り分けサンプル。
 - `docs/WEBKIT_MEMORY_RECORDING_SUMMARY.json`
   - iPadOS Safari で `apps/web/test19.html` を動かした Safari Web Inspector
     timeline recording から、必要な集計だけを抜き出した JSON。
@@ -405,6 +408,10 @@ JS 側の参照を減らす対策としては意味があるが、`iframe` に�
   - server-backed PDF URL に変えても増加の中心は残ったため、原因は Blob URL
     そのものよりも、Safari/WebKit の inline PDF iframe 表示または page resource
     保持に寄っている可能性が高い。
+- Phase 3 の一部として、`apps/web/test21.html` を追加した。
+  - PDF を生成して `save({ dispose: true })` するだけで、iframe に表示しない。
+  - `test21` でも増えるなら `pdf-lib` 側または JS runtime 側の保持が疑わしい。
+  - `test21` で増えないなら、inline PDF iframe 表示が主因だと判断しやすくなる。
 
 ## 現在のステータス
 
@@ -415,5 +422,5 @@ Web サンプル側の Blob URL cleanup も追加済みです。次に着手す�
 Safari 実機で inline PDF iframe preview を完全に使わない方式を比較します。
 `test19` と `test20` の recording ではどちらも `page` category が大きく増えて
 いるため、`save({ dispose: true })` や Blob URL 回避だけで根本解決する可能性は
-低いです。既存のライブラリ側 cleanup は維持しつつ、別画面/別タブ表示、
+低いです。既存のライブラリ側 cleanup は維持しつつ、生成のみ、別画面/別タブ表示、
 iPadOS Safari だけ inline preview を避ける導線を優先して検証します。
