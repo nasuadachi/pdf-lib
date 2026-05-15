@@ -54,7 +54,7 @@ iframe.src = url;
 
 ## 参考になるリンク
 
-- [Qiita: 10年前からあるSafariのメモリリーク問題が結構やばい](https://qiita.com/RepublicOfKorokke/items/90c9f49d8b8697ae0427)
+- [Qiita: 10 年前からある Safari のメモリリーク問題が結構やばい](https://qiita.com/RepublicOfKorokke/items/90c9f49d8b8697ae0427)
   - Safari/WebKit で画像表示更新を繰り返すとメモリが増える問題の調査まとめ。
 - [WebKit bug 31253: Unbounded memory growth when adding and removing images](https://bugs.webkit.org/show_bug.cgi?id=31253)
   - 画像ノードを追加・削除しても Document 側の resource が保持される可能性に
@@ -96,6 +96,9 @@ iframe.src = url;
 - `apps/web/*.html`
   - 手動テスト用 Web サンプルは、生成 PDF を `Blob` URL + `iframe` で表示
     している。現状、object URL の堅牢な cleanup 例にはなっていない。
+- `apps/web/preview-server.js`
+  - `test20.html` 用の小さな検証サーバー。生成済み PDF bytes を POST で受け、
+    `blob:` URL ではなく通常の HTTP PDF URL として返す。
 - `docs/WEBKIT_MEMORY_RECORDING_SUMMARY.json`
   - iPadOS Safari で `apps/web/test19.html` を動かした Safari Web Inspector
     timeline recording から、必要な集計だけを抜き出した JSON。
@@ -203,6 +206,7 @@ pdfDoc.dispose();
 - README または docs に Safari/iPadOS 向けの注意を追加する。
 - `apps/web` のサンプルで古い object URL を revoke し、iframe を cleanup する。
 - 繰り返し生成・表示用のストレステスト HTML を追加する。
+- `blob:` iframe と server-backed PDF URL を比較できる手動テストを追加する。
 
 ### Phase 4: optional object pruning
 
@@ -370,6 +374,13 @@ JS 側の参照を減らす対策としては意味があるが、`iframe` に�
   - `Run 30` と `Run 100` で、PDF 生成、`save({ dispose: true })`、iframe 表示
     差し替えを繰り返す。
   - `Stop` で表示中の Blob URL を cleanup する。
+- Phase 3 の一部として、`blob:` iframe を避ける比較対象を追加した。
+  - `apps/web/preview-server.js` は POST された PDF bytes を一時保持し、HTTP PDF
+    URL として返す。
+  - `apps/web/test20.html` は `save({ dispose: true })` した PDF を preview server
+    に POST し、`iframe` には `blob:` ではなく `/__pdf_preview/*.pdf` を設定する。
+  - `yarn apps:web:preview` で起動して、`test19` と `test20` の iPadOS Safari
+    memory category を比較する。
 - iPadOS Safari の timeline recording を集計し、
   `docs/WEBKIT_MEMORY_RECORDING_SUMMARY.json` として保存した。
   - memory total は 52.7 MB から 1333.3 MB まで増えた。
@@ -388,4 +399,5 @@ Safari 実機で `blob:` iframe PDF preview を使わない表示方式を比較
 今回の recording では `page` category が 1GB 以上増えているため、
 `save({ dispose: true })` だけで根本解決する可能性は低いです。既存の
 ライブラリ側 cleanup は維持しつつ、server-backed URL、別画面/別タブ表示、
-iPadOS Safari だけ inline preview を避ける導線を優先して検証します。
+iPadOS Safari だけ inline preview を避ける導線を優先して検証します。まずは
+`test19` と `test20` を同じ回数で実行し、`page` category の増え方を比較します。
