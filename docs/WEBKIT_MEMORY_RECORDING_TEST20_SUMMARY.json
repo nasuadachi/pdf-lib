@@ -1,0 +1,219 @@
+{
+  "version": 1,
+  "source": {
+    "fileName": "127.0.0.1-recording-test20.json",
+    "sourceKind": "Safari Web Inspector timeline recording",
+    "capturedTarget": "http://127.0.0.1:8080/apps/web/test20.html",
+    "recordingStartTime": 3.1833908749977127,
+    "recordingEndTime": 19.84122637499968,
+    "discontinuities": []
+  },
+  "recordsScanned": 11534,
+  "observedUniqueBlobUrls": 0,
+  "observedUniquePreviewPdfUrls": 60,
+  "memory": {
+    "samples": 33,
+    "first": {
+      "timestamp": 2.6960194166604197,
+      "total": 51150848,
+      "javascript": 10359253,
+      "jit": 1327104,
+      "images": 0,
+      "layers": 0,
+      "page": 30633515,
+      "other": 8830976
+    },
+    "last": {
+      "timestamp": 18.829010291665327,
+      "total": 571473920,
+      "javascript": 202984293,
+      "jit": 3375104,
+      "images": 0,
+      "layers": 0,
+      "page": 355267739,
+      "other": 9846784
+    },
+    "max": {
+      "timestamp": 15.295278166660864,
+      "total": 576585728,
+      "javascript": 199411779,
+      "jit": 3375104,
+      "images": 0,
+      "layers": 0,
+      "page": 363919293,
+      "other": 9879552
+    },
+    "maxDeltaFromFirst": {
+      "timestamp": 15.295278166660864,
+      "total": 576585728,
+      "javascript": 199411779,
+      "jit": 3375104,
+      "images": 0,
+      "layers": 0,
+      "page": 363919293,
+      "other": 9879552,
+      "delta": 525434880
+    },
+    "categories": {
+      "javascript": {
+        "first": 10359253,
+        "last": 202984293,
+        "min": 10359253,
+        "max": 202984293,
+        "delta": 192625040,
+        "maxDeltaFromFirst": 192625040
+      },
+      "jit": {
+        "first": 1327104,
+        "last": 3375104,
+        "min": 1327104,
+        "max": 3375104,
+        "delta": 2048000,
+        "maxDeltaFromFirst": 2048000
+      },
+      "images": {
+        "first": 0,
+        "last": 0,
+        "min": 0,
+        "max": 0,
+        "delta": 0,
+        "maxDeltaFromFirst": 0
+      },
+      "layers": {
+        "first": 0,
+        "last": 0,
+        "min": 0,
+        "max": 0,
+        "delta": 0,
+        "maxDeltaFromFirst": 0
+      },
+      "page": {
+        "first": 30633515,
+        "last": 355267739,
+        "min": 29555339,
+        "max": 363919293,
+        "delta": 324634224,
+        "maxDeltaFromFirst": 333285778
+      },
+      "other": {
+        "first": 8830976,
+        "last": 9846784,
+        "min": 8814592,
+        "max": 13156352,
+        "delta": 1015808,
+        "maxDeltaFromFirst": 4325376
+      }
+    }
+  },
+  "garbageCollection": {
+    "count": 11,
+    "totalDuration": 0.09365783333487343,
+    "longest": {
+      "target": {
+        "identifier": "page-318",
+        "type": "page",
+        "name": "ページ"
+      },
+      "type": "timeline-record-type-script",
+      "eventType": "garbage-collected",
+      "startTime": 17.85823358332709,
+      "endTime": 17.87504049999552,
+      "details": {
+        "__type": "GarbageCollection",
+        "type": "full",
+        "startTime": 17.85823358332709,
+        "endTime": 17.87504049999552
+      },
+      "extraDetails": null,
+      "duration": 0.01680691666842904
+    }
+  },
+  "recordTypes": [
+    {
+      "key": "timeline-record-type-layout",
+      "value": 7681
+    },
+    {
+      "key": "timeline-record-type-script",
+      "value": 2686
+    },
+    {
+      "key": "timeline-record-type-rendering-frame",
+      "value": 918
+    },
+    {
+      "key": "timeline-record-type-network",
+      "value": 216
+    },
+    {
+      "key": "timeline-record-type-memory",
+      "value": 33
+    }
+  ],
+  "events": [
+    {
+      "key": "timeline-record-type-layout / recalculate-styles",
+      "value": 1467
+    },
+    {
+      "key": "timeline-record-type-layout / layout",
+      "value": 1404
+    },
+    {
+      "key": "timeline-record-type-layout / invalidate-styles",
+      "value": 1371
+    },
+    {
+      "key": "timeline-record-type-layout / invalidate-layout",
+      "value": 1368
+    },
+    {
+      "key": "timeline-record-type-layout / paint",
+      "value": 1152
+    },
+    {
+      "key": "timeline-record-type-layout / composite",
+      "value": 919
+    },
+    {
+      "key": "timeline-record-type-rendering-frame",
+      "value": 918
+    },
+    {
+      "key": "timeline-record-type-script / animation-frame-fired",
+      "value": 913
+    },
+    {
+      "key": "timeline-record-type-script / animation-frame-requested",
+      "value": 913
+    },
+    {
+      "key": "timeline-record-type-script / script-evaluated",
+      "value": 384
+    },
+    {
+      "key": "timeline-record-type-network",
+      "value": 216
+    },
+    {
+      "key": "timeline-record-type-script / event-dispatched",
+      "value": 198
+    },
+    {
+      "key": "timeline-record-type-script / timer-installed",
+      "value": 158
+    },
+    {
+      "key": "timeline-record-type-script / timer-fired",
+      "value": 109
+    },
+    {
+      "key": "timeline-record-type-memory",
+      "value": 33
+    },
+    {
+      "key": "timeline-record-type-script / garbage-collected",
+      "value": 11
+    }
+  ]
+}
