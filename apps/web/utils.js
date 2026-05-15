@@ -141,4 +141,70 @@ function renderPdfBytesWithInlinePreviewMitigation(
   };
 }
 
+function createDeferredPdfObjectUrlPreview(options = {}) {
+  const mimeType = options.mimeType || 'application/pdf';
+  const target = options.target || '_blank';
+  const features = options.features || 'noopener,noreferrer';
+  let pdfBytes;
+  let objectUrl;
+
+  const revokeObjectUrl = () => {
+    if (!objectUrl) return;
+    URL.revokeObjectURL(objectUrl);
+    objectUrl = undefined;
+  };
+
+  const clear = () => {
+    pdfBytes = undefined;
+    revokeObjectUrl();
+  };
+
+  const setBytes = (bytes) => {
+    revokeObjectUrl();
+    pdfBytes = bytes;
+  };
+
+  const getObjectUrl = () => {
+    if (!pdfBytes) return undefined;
+    if (!objectUrl) {
+      objectUrl = URL.createObjectURL(new Blob([pdfBytes], { type: mimeType }));
+    }
+    return objectUrl;
+  };
+
+  const open = () => {
+    const url = getObjectUrl();
+    if (!url) return undefined;
+    return window.open(url, target, features);
+  };
+
+  const download = (fileName = 'document.pdf') => {
+    const url = getObjectUrl();
+    if (!url) return false;
+
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.rel = 'noopener noreferrer';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    return true;
+  };
+
+  window.addEventListener('pagehide', revokeObjectUrl);
+
+  return {
+    clear,
+    download,
+    getBytes: () => pdfBytes,
+    getObjectUrl,
+    hasBytes: () => !!pdfBytes,
+    hasObjectUrl: () => !!objectUrl,
+    open,
+    revokeObjectUrl,
+    setBytes,
+  };
+}
+
 window.addEventListener('pagehide', cleanupAllPdfIframes);
