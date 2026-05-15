@@ -584,6 +584,35 @@ describe(`PDFDocument`, () => {
       expect(pdfBytes2.byteLength).toBeGreaterThan(0);
       expect(pdfBytes2.byteLength).not.toEqual(pdfBytes1.byteLength);
     });
+
+    it(`can dispose the document after saving`, async () => {
+      const pdfDoc = await PDFDocument.create({ updateMetadata: false });
+      pdfDoc.addPage();
+
+      const pdfBytes = await pdfDoc.save({ dispose: true });
+
+      expect(pdfBytes.byteLength).toBeGreaterThan(0);
+      expect(pdfDoc.context.enumerateIndirectObjects()).toEqual([]);
+      expect(() => pdfDoc.getPageCount()).toThrow(
+        new PDFDocumentDisposedError(),
+      );
+      await expect(PDFDocument.load(pdfBytes)).resolves.toBeInstanceOf(
+        PDFDocument,
+      );
+    });
+
+    it(`can dispose the document after saving as base64`, async () => {
+      const pdfDoc = await PDFDocument.create({ updateMetadata: false });
+      pdfDoc.addPage();
+
+      const base64 = await pdfDoc.saveAsBase64({ dispose: true });
+
+      expect(base64.length).toBeGreaterThan(0);
+      expect(pdfDoc.context.enumerateIndirectObjects()).toEqual([]);
+      expect(() => pdfDoc.getPageCount()).toThrow(
+        new PDFDocumentDisposedError(),
+      );
+    });
   });
 
   describe(`dispose() method`, () => {

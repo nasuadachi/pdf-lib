@@ -15,6 +15,7 @@ export interface SaveOptions {
   addDefaultPage?: boolean;
   objectsPerTick?: number;
   updateFieldAppearances?: boolean;
+  dispose?: boolean;
 }
 
 export interface Base64SaveOptions extends SaveOptions {

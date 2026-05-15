@@ -247,9 +247,16 @@ iPadOS 固有の検証:
   - page/form cache、page map、埋め込み素材配列、catalog、context の保持を
     clear する。
   - 通常の `save()` は既存互換性のため、まだ自動 dispose しない。
+- Phase 2 の一部として、`save({ dispose: true })` と
+  `saveAsBase64({ dispose: true })` を追加した。
+  - 明示オプション指定時のみ、シリアライズ成功後に `PDFDocument.dispose()` を
+    呼ぶ。
+  - 返却済みの `Uint8Array` / base64 string は引き続き利用できる。
 
 ## 現在のステータス
 
 Phase 1 の embedder 参照解放と、Phase 2 前半の明示的 `PDFDocument.dispose()`
-は実装済みです。次に着手するなら、`save({ dispose: true })` を別コミットで
-追加し、明示オプション指定時だけ保存後に document を破棄できるようにします。
+は実装済みです。さらに、明示オプション指定時だけ保存後に document を破棄する
+`save({ dispose: true })` も追加済みです。次に着手するなら、Web サンプル側の
+Blob URL cleanup と、iPadOS Safari での手動ストレステスト導線を別コミットで
+追加します。
