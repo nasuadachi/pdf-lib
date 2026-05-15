@@ -96,6 +96,19 @@ iframe.src = url;
 - `apps/web/*.html`
   - 手動テスト用 Web サンプルは、生成 PDF を `Blob` URL + `iframe` で表示
     している。現状、object URL の堅牢な cleanup 例にはなっていない。
+- `docs/WEBKIT_MEMORY_RECORDING_SUMMARY.json`
+  - iPadOS Safari で `apps/web/test19.html` を動かした Safari Web Inspector
+    timeline recording から、必要な集計だけを抜き出した JSON。
+  - 元の recording JSON は約 1GB あるため repo には入れず、memory category、
+    GC、Blob URL 数、主要イベント数だけを保存する。
+- `docs/WEBKIT_MEMORY_RECORDING_ANALYSIS_BRIEF.md`
+  - 集計から読み取れることを短くまとめた Markdown。
+- `docs/WEBKIT_MEMORY_RECORDING_SUMMARY.md`
+  - memory category、GC、主要イベント数の Markdown summary。
+- `docs/WEBKIT_MEMORY_TIMESERIES.csv`
+  - Safari memory sample の raw CSV。
+- `docs/WEBKIT_MEMORY_TIMESERIES_1S.csv`
+  - memory sample を 1 秒単位に間引いた CSV。
 
 ## ライブラリを修正する方向
 
@@ -224,6 +237,95 @@ iPadOS 固有の検証:
   - worker 生成 + disposal
   - Safari では同一ページ `iframe` プレビューを使わない構成
 
+## Safari 記録から分かったこと
+
+`apps/web/test19.html` を iPadOS Safari で実行した timeline recording を集計した。
+集計結果は次のファイルに保存した。
+
+- `docs/WEBKIT_MEMORY_RECORDING_ANALYSIS_BRIEF.md`
+- `docs/WEBKIT_MEMORY_RECORDING_SUMMARY.md`
+- `docs/WEBKIT_MEMORY_RECORDING_SUMMARY.json`
+- `docs/WEBKIT_MEMORY_TIMESERIES.csv`
+- `docs/WEBKIT_MEMORY_TIMESERIES_1S.csv`
+
+元の recording は `/Users/keitaro/tmp/172.20.10.2-recording.json` で、サイズは
+約 1GB だった。repo には巨大な元ファイルではなく、集計済みの Markdown、JSON、
+CSV だけを残す。
+
+主な数値:
+
+- 走査した record 数: 50,429
+- parse error: 0
+- 観測された unique `blob:` URL: 130
+- Safari memory total: 52.7 MB -> 1333.3 MB
+- Safari memory max: 1343.1 MB
+- `page`: 35.4 MB -> 1154.7 MB
+- `javascript`: 7.1 MB -> 165.9 MB
+- `images`: 0 MB のまま
+- `layers`: 0 MB のまま
+- GC event: 50
+- GC total duration: 4.923 s
+
+recording には 70.6s-195.9s の discontinuity があるため、厳密には連続した
+1 本の時系列としてではなく、2 つの観測区間として読む。
+
+観測区間ごとの増加:
+
+- 3.5s-69.9s: total 52.7 MB -> 565.4 MB、max 1174.0 MB
+- 195.9s-228.1s: total 774.9 MB -> 1333.3 MB、max 1343.1 MB
+
+### 考え方
+
+この結果では、メモリ増加の支配的な要素は JavaScript heap ではなく WebKit の
+`page` category だった。`javascript` も 158.7 MB 程度増えているが、`page` は
+1.1 GB 以上増えている。
+
+つまり、今回の主要因は `pdf-lib` の `PDFDocument` object graph だけでは説明
+しにくい。`save({ dispose: true })`、font embedder 解放、Blob URL cleanup は
+JS 側の参照を減らす対策としては意味があるが、`iframe` に読み込まれた
+`blob:` PDF viewer / document resource を WebKit が保持し続ける問題までは
+ライブラリ側から強制解放できない。
+
+`images` と `layers` が 0 MB のままなので、少なくともこの recording では画像
+デコードや layer accumulation が主因とは読めない。`page` category の増加が
+大きいため、WebKit の page/document/PDF viewer resource retention と見るのが
+自然。
+
+### どうするべきか
+
+ライブラリ側の方針:
+
+- 既に入れた `PDFDocument.dispose()`、`save({ dispose: true })`、embedder
+  参照解放は維持する。これは Chrome 等でも低リスクで、JS 側のピークメモリを
+  下げる効果がある。
+- ただし、これ以上 `pdf-lib` 内部だけを削っても、iPadOS Safari の `page`
+  category 増加を根本的に止められる可能性は低い。
+- optional object pruning は出力サイズや serialization peak には効く可能性が
+  あるが、今回の `page` category 増加に対する第一優先の対策ではない。
+
+アプリ側/表示方式の方針:
+
+- iPadOS Safari では、同一ページ上の `iframe` に `blob:` PDF URL を何度も
+  差し替える構成を避ける方向を第一候補にする。
+- 比較すべき代替案:
+  - PDF bytes を一時的な server-backed URL に置き、`blob:` URL ではなく通常の
+    HTTP URL として表示する。
+  - 同一 `iframe` 差し替えではなく、別画面/別タブ/別 viewer page へ遷移させる。
+  - iPadOS Safari だけ inline preview を無効化し、download/open-in-new-tab
+    導線にする。
+  - PDF 生成を dedicated Worker に閉じ込め、生成後に worker を terminate する。
+    これは JS heap 側の対策であり、`page` category 対策とは分けて評価する。
+- 今後の cherry-pick 判断では、`save({ dispose: true })` 系のコミットだけで
+  iPadOS Safari のクラッシュが消えることを期待しすぎない。Blob iframe 回避の
+  表示方式変更と組み合わせて評価する。
+
+次に作るとよい検証ページ:
+
+- `test19` と同じ PDF 生成を行うが、`iframe.src = blobUrl` を使わないページ。
+- server-backed URL 表示と `blob:` iframe 表示を同じ回数で比較できるページ。
+- iPadOS Safari 判定時だけ preview を download/open-in-new-tab に切り替える
+  実アプリ相当の検証ページ。
+
 ## いままで修正したこと
 
 ### 2026-05-15
@@ -268,6 +370,13 @@ iPadOS 固有の検証:
   - `Run 30` と `Run 100` で、PDF 生成、`save({ dispose: true })`、iframe 表示
     差し替えを繰り返す。
   - `Stop` で表示中の Blob URL を cleanup する。
+- iPadOS Safari の timeline recording を集計し、
+  `docs/WEBKIT_MEMORY_RECORDING_SUMMARY.json` として保存した。
+  - memory total は 52.7 MB から 1333.3 MB まで増えた。
+  - 増加の大半は `page` category で、`javascript` より支配的だった。
+  - `blob:` URL は 130 個観測された。
+  - この結果から、次の主戦場は `pdf-lib` 内部解放だけではなく、iPadOS Safari
+    で `blob:` iframe PDF preview を避ける表示方式の検証だと判断した。
 
 ## 現在のステータス
 
@@ -275,5 +384,8 @@ Phase 1 の embedder 参照解放と、Phase 2 前半の明示的 `PDFDocument.d
 は実装済みです。さらに、明示オプション指定時だけ保存後に document を破棄する
 `save({ dispose: true })` と、dispose 時の font embedder 解放も追加済みです。
 Web サンプル側の Blob URL cleanup も追加済みです。次に着手するなら、iPadOS
-Safari 実機で `apps/web/test19.html` と実アプリの再描画フローを比較し、効果の
-あるコミットだけを cherry-pick するのがよいです。
+Safari 実機で `blob:` iframe PDF preview を使わない表示方式を比較します。
+今回の recording では `page` category が 1GB 以上増えているため、
+`save({ dispose: true })` だけで根本解決する可能性は低いです。既存の
+ライブラリ側 cleanup は維持しつつ、server-backed URL、別画面/別タブ表示、
+iPadOS Safari だけ inline preview を避ける導線を優先して検証します。

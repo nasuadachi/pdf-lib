@@ -1,0 +1,424 @@
+{
+  "version": 1,
+  "source": {
+    "fileName": "172.20.10.2-recording.json",
+    "sourceKind": "Safari Web Inspector timeline recording",
+    "capturedTarget": "http://172.20.10.2:8080/apps/web/test19.html",
+    "recordingStartTime": 3.9889990000010584,
+    "recordingEndTime": 228.8110535416672,
+    "discontinuities": [
+      {
+        "startTime": 70.63270670833299,
+        "endTime": 195.87281020833325
+      }
+    ]
+  },
+  "recordsScanned": 50429,
+  "parseErrors": 0,
+  "observedUniqueBlobUrls": 130,
+  "memory": {
+    "samples": 199,
+    "first": {
+      "timestamp": 3.5017214583349414,
+      "total": 55230464,
+      "javascript": 7458275,
+      "jit": 1294336,
+      "images": 0,
+      "layers": 0,
+      "page": 37138973,
+      "other": 9338880
+    },
+    "last": {
+      "timestamp": 228.14032491666876,
+      "total": 1398046720,
+      "javascript": 173910131,
+      "jit": 2326528,
+      "images": 0,
+      "layers": 0,
+      "page": 1210750861,
+      "other": 11059200
+    },
+    "max": {
+      "timestamp": 207.97315170833463,
+      "total": 1408335872,
+      "javascript": 183247745,
+      "jit": 2326528,
+      "images": 0,
+      "layers": 0,
+      "page": 1208081535,
+      "other": 14680064
+    },
+    "maxDeltaFromFirst": {
+      "timestamp": 207.97315170833463,
+      "total": 1408335872,
+      "javascript": 183247745,
+      "jit": 2326528,
+      "images": 0,
+      "layers": 0,
+      "page": 1208081535,
+      "other": 14680064,
+      "delta": 1353105408
+    },
+    "categories": {
+      "javascript": {
+        "first": 7458275,
+        "last": 173910131,
+        "min": 0,
+        "max": 214388087,
+        "delta": 166451856,
+        "maxDeltaFromFirst": 206929812
+      },
+      "jit": {
+        "first": 1294336,
+        "last": 2326528,
+        "min": 0,
+        "max": 3538944,
+        "delta": 1032192,
+        "maxDeltaFromFirst": 2244608
+      },
+      "images": {
+        "first": 0,
+        "last": 0,
+        "min": 0,
+        "max": 0,
+        "delta": 0,
+        "maxDeltaFromFirst": 0
+      },
+      "layers": {
+        "first": 0,
+        "last": 0,
+        "min": 0,
+        "max": 0,
+        "delta": 0,
+        "maxDeltaFromFirst": 0
+      },
+      "page": {
+        "first": 37138973,
+        "last": 1210750861,
+        "min": 0,
+        "max": 1210750861,
+        "delta": 1173611888,
+        "maxDeltaFromFirst": 1173611888
+      },
+      "other": {
+        "first": 9338880,
+        "last": 11059200,
+        "min": 0,
+        "max": 14680064,
+        "delta": 1720320,
+        "maxDeltaFromFirst": 5341184
+      }
+    },
+    "segments": [
+      {
+        "startTime": 3.5017214583349414,
+        "endTime": 69.93523862499933,
+        "sampleCount": 133,
+        "first": {
+          "timestamp": 3.5017214583349414,
+          "total": 55230464,
+          "javascript": 7458275,
+          "jit": 1294336,
+          "images": 0,
+          "layers": 0,
+          "page": 37138973,
+          "other": 9338880
+        },
+        "last": {
+          "timestamp": 69.93523862499933,
+          "total": 592871424,
+          "javascript": 134519251,
+          "jit": 3522560,
+          "images": 0,
+          "layers": 0,
+          "page": 443770413,
+          "other": 11059200
+        },
+        "max": {
+          "timestamp": 25.647837125001388,
+          "total": 1231011840,
+          "javascript": 199594408,
+          "jit": 3522560,
+          "images": 0,
+          "layers": 0,
+          "page": 1013444184,
+          "other": 14450688
+        },
+        "delta": {
+          "total": 537640960,
+          "javascript": 127060976,
+          "jit": 2228224,
+          "images": 0,
+          "layers": 0,
+          "page": 406631440,
+          "other": 1720320
+        }
+      },
+      {
+        "startTime": 195.8854168333346,
+        "endTime": 228.14032491666876,
+        "sampleCount": 65,
+        "first": {
+          "timestamp": 195.8854168333346,
+          "total": 812580864,
+          "javascript": 127271027,
+          "jit": 3506176,
+          "images": 0,
+          "layers": 0,
+          "page": 670809997,
+          "other": 10993664
+        },
+        "last": {
+          "timestamp": 228.14032491666876,
+          "total": 1398046720,
+          "javascript": 173910131,
+          "jit": 2326528,
+          "images": 0,
+          "layers": 0,
+          "page": 1210750861,
+          "other": 11059200
+        },
+        "max": {
+          "timestamp": 207.97315170833463,
+          "total": 1408335872,
+          "javascript": 183247745,
+          "jit": 2326528,
+          "images": 0,
+          "layers": 0,
+          "page": 1208081535,
+          "other": 14680064
+        },
+        "delta": {
+          "total": 585465856,
+          "javascript": 46639104,
+          "jit": -1179648,
+          "images": 0,
+          "layers": 0,
+          "page": 539940864,
+          "other": 65536
+        }
+      }
+    ]
+  },
+  "garbageCollection": {
+    "count": 50,
+    "totalDuration": 4.923077458319312,
+    "first": {
+      "type": "timeline-record-type-script",
+      "eventType": "garbage-collected",
+      "startTime": 3.98935899999924,
+      "endTime": 4.017384624999977,
+      "duration": 0.02802562500073691,
+      "target": {
+        "identifier": "page-55",
+        "type": "page",
+        "name": "ページ"
+      },
+      "details": {
+        "type": "full",
+        "startTime": 3.98935899999924,
+        "endTime": 4.017384624999977
+      }
+    },
+    "last": {
+      "type": "timeline-record-type-script",
+      "eventType": "garbage-collected",
+      "startTime": 225.873621499999,
+      "endTime": 226.37955820833304,
+      "duration": 0.5059367083340476,
+      "target": {
+        "identifier": "page-55",
+        "type": "page",
+        "name": "ページ"
+      },
+      "details": {
+        "type": "full",
+        "startTime": 225.873621499999,
+        "endTime": 226.37955820833304
+      }
+    },
+    "longest": [
+      {
+        "type": "timeline-record-type-script",
+        "eventType": "garbage-collected",
+        "startTime": 215.87330716666838,
+        "endTime": 216.38640791666694,
+        "duration": 0.5131007499985571,
+        "target": {
+          "identifier": "page-55",
+          "type": "page",
+          "name": "ページ"
+        },
+        "details": {
+          "type": "full",
+          "startTime": 215.87330716666838,
+          "endTime": 216.38640791666694
+        }
+      },
+      {
+        "type": "timeline-record-type-script",
+        "eventType": "garbage-collected",
+        "startTime": 225.873621499999,
+        "endTime": 226.37955820833304,
+        "duration": 0.5059367083340476,
+        "target": {
+          "identifier": "page-55",
+          "type": "page",
+          "name": "ページ"
+        },
+        "details": {
+          "type": "full",
+          "startTime": 225.873621499999,
+          "endTime": 226.37955820833304
+        }
+      },
+      {
+        "type": "timeline-record-type-script",
+        "eventType": "garbage-collected",
+        "startTime": 205.87247620833296,
+        "endTime": 206.37436958333274,
+        "duration": 0.5018933749997814,
+        "target": {
+          "identifier": "page-55",
+          "type": "page",
+          "name": "ページ"
+        },
+        "details": {
+          "type": "full",
+          "startTime": 205.87247620833296,
+          "endTime": 206.37436958333274
+        }
+      },
+      {
+        "type": "timeline-record-type-script",
+        "eventType": "garbage-collected",
+        "startTime": 23.999518374999752,
+        "endTime": 24.44745729166607,
+        "duration": 0.4479389166663168,
+        "target": {
+          "identifier": "page-55",
+          "type": "page",
+          "name": "ページ"
+        },
+        "details": {
+          "type": "full",
+          "startTime": 23.999518374999752,
+          "endTime": 24.44745729166607
+        }
+      },
+      {
+        "type": "timeline-record-type-script",
+        "eventType": "garbage-collected",
+        "startTime": 54.03381358333354,
+        "endTime": 54.44293066666796,
+        "duration": 0.4091170833344222,
+        "target": {
+          "identifier": "page-55",
+          "type": "page",
+          "name": "ページ"
+        },
+        "details": {
+          "type": "full",
+          "startTime": 54.03381358333354,
+          "endTime": 54.44293066666796
+        }
+      }
+    ]
+  },
+  "topRecordTypes": [
+    {
+      "key": "timeline-record-type-layout",
+      "count": 32079
+    },
+    {
+      "key": "timeline-record-type-script",
+      "count": 13090
+    },
+    {
+      "key": "timeline-record-type-rendering-frame",
+      "count": 4718
+    },
+    {
+      "key": "timeline-record-type-cpu",
+      "count": 199
+    },
+    {
+      "key": "timeline-record-type-memory",
+      "count": 199
+    },
+    {
+      "key": "timeline-record-type-network",
+      "count": 132
+    },
+    {
+      "key": "timeline-record-type-heap-allocations",
+      "count": 12
+    }
+  ],
+  "topEvents": [
+    {
+      "key": "timeline-record-type-layout / recalculate-styles",
+      "count": 5630
+    },
+    {
+      "key": "timeline-record-type-layout / invalidate-styles",
+      "count": 5498
+    },
+    {
+      "key": "timeline-record-type-layout / layout",
+      "count": 5495
+    },
+    {
+      "key": "timeline-record-type-layout / invalidate-layout",
+      "count": 5493
+    },
+    {
+      "key": "timeline-record-type-layout / paint",
+      "count": 5242
+    },
+    {
+      "key": "timeline-record-type-layout / composite",
+      "count": 4721
+    },
+    {
+      "key": "timeline-record-type-script / animation-frame-fired",
+      "count": 4706
+    },
+    {
+      "key": "timeline-record-type-script / animation-frame-requested",
+      "count": 4706
+    },
+    {
+      "key": "timeline-record-type-script / microtask-dispatched",
+      "count": 2080
+    },
+    {
+      "key": "timeline-record-type-script / script-evaluated",
+      "count": 528
+    },
+    {
+      "key": "timeline-record-type-script / timer-installed",
+      "count": 392
+    },
+    {
+      "key": "timeline-record-type-script / timer-fired",
+      "count": 354
+    },
+    {
+      "key": "timeline-record-type-script / event-dispatched",
+      "count": 274
+    },
+    {
+      "key": "timeline-record-type-script / garbage-collected",
+      "count": 50
+    }
+  ],
+  "interpretation": {
+    "primaryGrowthCategory": "page",
+    "totalGrowthBytes": 1342816256,
+    "pageGrowthBytes": 1173611888,
+    "javascriptGrowthBytes": 166451856,
+    "conclusion": "The dominant growth is in Safari/WebKit page memory, not image/layer memory and not primarily JavaScript heap. This is consistent with WebKit retaining blob iframe PDF viewer or document resources even when object URLs are revoked and PDFDocument is disposed.",
+    "recommendedDirection": "Keep pdf-lib disposal changes as low-risk JavaScript-side mitigation, but prioritize avoiding repeated blob iframe PDF previews on iPadOS Safari. Compare server-backed PDF URLs, navigation to a separate viewer page, download/open-in-new-tab flows, or disabling inline iframe preview on Safari."
+  }
+}
