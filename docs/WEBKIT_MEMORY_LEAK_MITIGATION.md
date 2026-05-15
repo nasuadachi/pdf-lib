@@ -102,6 +102,9 @@ iframe.src = url;
 - `apps/web/test21.html`
   - `iframe` 表示も network preview も行わず、PDF 生成と
     `save({ dispose: true })` だけを繰り返す切り分けサンプル。
+- `apps/web/test22.html`
+  - iPadOS Safari では inline PDF iframe preview を避け、生成済み PDF の
+    object URL をリンクとしてだけ提示する mitigation サンプル。
 - `docs/WEBKIT_MEMORY_RECORDING_SUMMARY.json`
   - iPadOS Safari で `apps/web/test19.html` を動かした Safari Web Inspector
     timeline recording から、必要な集計だけを抜き出した JSON。
@@ -415,6 +418,11 @@ JS 側の参照を減らす対策としては意味があるが、`iframe` に�
   - PDF を生成して `save({ dispose: true })` するだけで、iframe に表示しない。
   - `test21` でも増えるなら `pdf-lib` 側または JS runtime 側の保持が疑わしい。
   - `test21` で増えないなら、inline PDF iframe 表示が主因だと判断しやすくなる。
+- Phase 3 の一部として、`apps/web/test22.html` を追加した。
+  - `renderPdfBytesWithInlinePreviewMitigation()` を通して PDF を扱う。
+  - iPadOS Safari では `iframe.src` に PDF URL を設定せず、リンクだけを更新する。
+  - Safari 以外では従来通り iframe preview できるため、既存サンプルとの比較に使える。
+  - `?force-mitigation=1` を付けると、デスクトップブラウザでも回避モードを確認できる。
 - `test21.html` の iPadOS Safari timeline recording を集計し、
   `docs/WEBKIT_MEMORY_RECORDING_TEST21_SUMMARY.json` として保存した。
   - `blob:` URL と server preview PDF URL はどちらも 0 個だった。
